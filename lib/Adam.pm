@@ -78,7 +78,6 @@ has _owner => (
     metaclass => 'MooseX::Getopt::Meta::Attribute',
     cmd_flag  => 'owner',
     isa       => 'Str',
-    is        => 'ro',
     builder   => 'default_owner',
 );
 
@@ -87,7 +86,6 @@ sub default_owner { 'perigrin!~perigrin@c-75-72-134-35.hsd1.mn.comcast.net' }
 has _plugins => (
     metaclass  => 'Collection::Hash',
     isa        => 'HashRef',
-    is         => 'ro',
     lazy_build => 1,
     auto_deref => 1,
     accessor   => 'plugins',
@@ -114,6 +112,8 @@ sub core_plugins {
     };
 }
 
+sub custom_plugins { {} }
+
 sub default_plugins {
     return { %{ $_[0]->core_plugins }, %{ $_[0]->custom_plugins } };
 }
@@ -129,7 +129,6 @@ before 'START' => sub {
 
 has _irc => (
     isa        => 'POE::Component::IRC',
-    is         => 'ro',
     accessor   => 'irc',
     lazy_build => 1,
     handles    => {
@@ -226,14 +225,7 @@ This document describes Adam version 0.0.1
 
 =head1 SYNOPSIS
 
-	perl -Moose=BilgeRat -MAcme::Scurvy::Whoreson::BilgeRat -Ilib \
-	     -e' use MooseX::POE; extends(qw(Adam)); 
-	         my $insulter = Acme::Scurvy::Whoreson::BilgeRat->new(language => q[pirate]); 
-	         event irc_bot_addressed => sub { 
-			 	 my ($nick) = split /!/, $_[ARG0]; 
-				 $_[OBJECT]->privmsg( $_[ARG1]->[0] , "$nick you $insulter!"); 
-			 }; 
-			 __PACKAGE__->run' -- --channels \#swhack --server irc.freenode.net
+perl -Ilib -Moses=T -MNet::Twitter -e'event irc_public=>sub {Net::Twitter->new(username=>$ARGV[0],password=>$ARGV[1])->update($_[ARG2])};T->run'
 
 =for author to fill in:
     Brief code example(s) here showing commonest usage(s).
