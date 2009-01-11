@@ -2,11 +2,15 @@
 use inc::Module::Install;
 
 # Define metadata
-name 'Pip';
-all_from 'lib/Pip.pm';
+name 'Adam';
+all_from 'lib/Adam.pm';
 
 # Specific dependencies
-# requires 'Moose' => '0.25';
+requires 'MooseX::POE'          => '0.09';
+requires 'POE::Component::IRC'  => undef;
+requires 'MooseX::Getopt'       => undef;
+requires 'MooseX::SimpleConfig' => undef;
+requires 'MooseX::LogDispatch'  => undef;
 
 build_requires 'Test::More' => '0.42';
 
