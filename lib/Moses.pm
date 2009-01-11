@@ -1,121 +1,62 @@
 package Moses;
-our $VERSION = 0.080;
-use Moose;
-use MooseX::POE::Meta::Class;
+our $VERSION = 0.090;
+use Moose       ();
+use MooseX::POE ();
+use Moose::Exporter;
 use Adam;
-use Sub::Name 'subname';
-use Sub::Exporter;
-use B qw(svref_2object);
-{
-    my $CALLER;
-    my %exports = (
-        event => sub {
-            my $class = $CALLER;
-            return subname 'MooseX::POE::event' => sub ($&) {
-                my ( $name, $method ) = @_;
-                $class->meta->add_state_method( $name => $method );
-            };
-        },
-        nickname => sub {
-            my $class = $CALLER;
-            return subname 'Moses::nickname' => sub ($) {
-                my ($name) = @_;
-                $class->meta->add_method(
-                    'default_nickname' => sub { return $name } );
-              }
-        },
-        server => sub {
-            my $class = $CALLER;
-            return subname 'Moses::server_name' => sub ($) {
-                my ($name) = @_;
-                $class->meta->add_method(
-                    'default_server' => sub { return $name } );
-              }
-        },
-        port => sub {
-            my $class = $CALLER;
-            return subname 'Moses::port' => sub ($) {
-                my ($port) = @_;
-                $class->meta->add_method( 'default_port' => sub { return $port }
-                );
-              }
-        },
-        channels => sub {
-            my $class = $CALLER;
-            return subname 'Moses::channels' => sub (@) {
-                my @channels = @_;
-                $class->meta->add_method(
-                    'default_channels' => sub { return \@channels } );
-              }
-        },
-        plugins => sub {
-            my $class = $CALLER;
-            return subname 'Moses::plugins' => sub (@) {
-                my %plugins = @_;
-                $class->meta->add_method(
-                    'custom_plugins' => sub { return \%plugins } );
-              }
-        },
 
-    );
+my ( $import, $unimport ) = Moose::Exporter->build_import_methods(
+    with_caller => [qw(nickname server port channels plugins)],
+    also        => [qw(MooseX::POE)],
+);
 
-    my $exporter = Sub::Exporter::build_exporter(
-        {
-            exports => \%exports,
-            groups  => { default => [':all'] }
-        }
-    );
+*unimport = $unimport;
 
-    sub import {
-        my ( $pkg, $subclass ) = @_;
-        $CALLER = caller();
-        strict->import;
-        warnings->import;
-
-        return if $CALLER eq 'main';
-        my $object_class = 'Adam';
-        my $meta_class   = 'MooseX::POE::Meta::Class';
-
-        if ($subclass) {
-            $object_class .= '::' . ucfirst $subclass;
-        }
-
-        Moose::init_meta( $CALLER, $object_class, $meta_class );
-        Moose->import( { into => $CALLER } );
-        ## no critic
-        eval qq{package $CALLER; use POE; };
-        ## use critic
-        die $@ if $@;
-
-        goto $exporter;
-    }
-
-    sub unimport {
-        no strict 'refs';
-        my $class = caller();
-
-        # loop through the exports ...
-        foreach my $name ( keys %exports ) {
-
-            # if we find one ...
-            if ( defined &{ $class . '::' . $name } ) {
-                my $keyword = \&{ $class . '::' . $name };
-
-                # make sure it is from Moose
-                my $pkg_name =
-                  eval { svref_2object($keyword)->GV->STASH->NAME };
-                next if $@;
-
-                if ( $pkg_name eq 'MooseX::POE' || $pkg_name eq 'Moses' ) {
-                    delete ${ $class . '::' }{$name};
-                }
-            }
-        }
-
-        # now let Moose do the same thing
-        goto &{ Moose->can('unimport') };
-    }
+sub import {
+    my ( $traits, @args ) = Moose::Exporter::_strip_traits(@_);
+    $CALLER = Moose::Exporter::_get_caller(@args);
+    eval qq{package $CALLER; use POE; };
+    goto &$import;
 }
-no Moose;
+
+sub init_meta {
+    shift;    # our class name
+    return Moose->init_meta(
+        @_,
+        metaclass  => 'MooseX::POE::Meta::Class',
+        base_class => 'Adam'
+    );
+}
+
+sub nickname ($) {
+    my ( $caller, $name ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_nickname' => sub { return $name } );
+}
+
+sub server ($) {
+    my ( $caller, $name ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_server' => sub { return $name } );
+}
+
+sub port ($) {
+    my ( $caller, $port ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_port' => sub { return $port } );
+}
+
+sub channels (@) {
+    my ( $caller, @channels ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_channels' => sub { return \@channels } );
+}
+
+sub plugins (@) {
+    my ( $caller, %plugins ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'custom_plugins' => sub { return \%plugins } );
+}
+
 1;
 __END__

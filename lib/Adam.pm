@@ -20,12 +20,14 @@ with qw(
   MooseX::Getopt
   MooseX::LogDispatch::Levels
 );
+
 has logger => (
     metaclass  => 'NoGetopt',
     isa        => 'Log::Dispatch::Config',
     is         => 'rw',
     lazy_build => 1,
 );
+
 has _nickname => (
     metaclass => 'MooseX::Getopt::Meta::Attribute',
     cmd_flag  => 'nickname',
@@ -159,7 +161,7 @@ sub START {
     # We get the session ID of the component from the object
     # and register and connect to the specified server.
     $poe_kernel->post( $self->irc_session_id => register => 'all' );
-    $poe_kernel->post( $self->irc_session_id => connect => {} );
+    $poe_kernel->post( $self->irc_session_id => connect  => {} );
     $self->info( 'connecting to ' . $self->_server . ':' . $self->_port );
     return;
 }
@@ -207,7 +209,10 @@ sub DEFAULT {
     return 0;
 }
 
-sub run { $_[0]->new_with_options unless blessed $_[0]; POE::Kernel->run }
+sub run {
+    $_[0]->new_with_options unless blessed $_[0];
+    POE::Kernel->run;
+}
 
 no MooseX::POE
   ;    # unimport Moose's keywords so they won't accidentally become methods
