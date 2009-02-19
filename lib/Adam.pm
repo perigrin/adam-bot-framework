@@ -1,7 +1,7 @@
 package Adam;
 use MooseX::POE;
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 use POE::Component::IRC::Common qw( :ALL );
 use POE::Component::IRC::Plugin qw( :ALL );
 
@@ -14,6 +14,7 @@ use POE qw(
   Component::IRC::Plugin::ISupport
   Component::IRC::Plugin::NickReclaim
   Component::IRC::Plugin::BotAddressed
+  Component::IRC::Plugin::AutoJoin
 );
 
 with qw(
@@ -75,6 +76,11 @@ sub default_channels {
     [qw( #bots )];
 }
 
+has _autojoinchannels => (
+	isa		=> 'HashRef',
+	is		=> 'rw',
+);
+
 has _owner => (
     accessor  => 'owner',
     metaclass => 'MooseX::Getopt::Meta::Attribute',
@@ -84,6 +90,16 @@ has _owner => (
 );
 
 sub default_owner { 'perigrin!~perigrin@c-75-72-134-35.hsd1.mn.comcast.net' }
+
+has _flood => (
+    accessor  => 'flood',
+    metaclass => 'MooseX::Getopt::Meta::Attribute',
+    cmd_flag  => 'flood',
+    isa       => 'Bool',
+    builder   => 'default_flood',
+);
+
+sub default_flood { 0 }
 
 has _plugins => (
     metaclass  => 'Collection::Hash',
@@ -104,6 +120,9 @@ sub core_plugins {
         'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
         'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
         'Core_ISupport'     => 'POE::Component::IRC::Plugin::ISupport',
+		'Core_AutoJoin'		=> POE::Component::IRC::Plugin::AutoJoin->new(
+			Channels => $_[0]->_autojoinchannels,
+		),
 
 # 'Core_Console'      => POE::Component::IRC::Plugin::Console->new(
 #    bindport => 6669,
@@ -122,6 +141,11 @@ sub default_plugins {
 
 before 'START' => sub {
     my ($self) = @_;
+	my %channels;
+	for ( $self->_channels ) {
+		$channels{$_} = '';
+	}
+	$self->_autojoinchannels(\%channels);
     my $pm = POE::Component::IRC::Plugin::PlugMan->new(
         botowner => $self->owner,
         debug    => 1
@@ -141,12 +165,15 @@ has _irc => (
 );
 
 sub _build__irc {
+	use Data::Dumper;
+	print Dumper $_[0];
     POE::Component::IRC::State->spawn(
         Nick    => $_[0]->_nickname,
         Server  => $_[0]->_server,
         Port    => $_[0]->_port,
         Ircname => $_[0]->_nickname,
-        Options => { trace => 0 }
+        Options => { trace => 0 },
+		Flood	=> $_[0]->flood,
     );
 }
 
@@ -184,11 +211,13 @@ event irc_connected => sub {
     my ( $self, $sender ) = @_[ OBJECT, SENDER ];
     $self->info( "connected to " . $self->_server . ':' . $self->_port );
 
+    #deprecated
     # In any irc_* events SENDER will be the PoCo-IRC session
-    for ( $self->_channels ) {
-        $self->info("joining: $_");
-        POE::Kernel->post( $sender => join => $_ );
-    }
+    #for ( $self->_channels ) {
+    #    $self->info("joining: $_");
+    #    POE::Kernel->post( $sender => join => $_ );
+    #}
+    #deprecated
     return;
 };
 
@@ -214,9 +243,8 @@ sub run {
     POE::Kernel->run;
 }
 
-no MooseX::POE
-  ;    # unimport Moose's keywords so they won't accidentally become methods
-1;     # Magic true value required at end of module
+no MooseX::POE; # unimport Moose's keywords so they won't accidentally become methods
+1;              # Magic true value required at end of module
 __END__
 
 =head1 NAME
