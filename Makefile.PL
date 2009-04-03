@@ -11,6 +11,7 @@ requires 'POE::Component::IRC'  => undef;
 requires 'MooseX::Getopt'       => undef;
 requires 'MooseX::SimpleConfig' => undef;
 requires 'MooseX::LogDispatch'  => undef;
+requires 'POE::Component::IRC::Plugin::AutoJoin' => undef;
 
 build_requires 'Test::More' => '0.42';
 
