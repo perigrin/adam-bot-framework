@@ -20,12 +20,14 @@ sub import {
 }
 
 sub init_meta {
-    shift;    # our class name
-    return Moose->init_meta(
-        @_,
-        metaclass  => 'MooseX::POE::Meta::Class',
+    my ( $class, %args ) = @_;
+
+    my $for = $args{for_class};
+
+    Moose->init_meta(
+        for_class  => $for,
         base_class => 'Adam'
-    );
+    );    
 }
 
 sub nickname ($) {
