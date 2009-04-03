@@ -1,7 +1,7 @@
 package Adam;
 use MooseX::POE;
 
-our $VERSION = '0.0.2';
+our $VERSION = '0.0.3';
 use POE::Component::IRC::Common qw( :ALL );
 use POE::Component::IRC::Plugin qw( :ALL );
 

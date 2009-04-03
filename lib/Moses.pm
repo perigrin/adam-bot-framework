@@ -1,9 +1,10 @@
 package Moses;
-our $VERSION = 0.090;
 use Moose       ();
 use MooseX::POE ();
 use Moose::Exporter;
 use Adam;
+
+our $VERSION = $Adam::VERSION;
 
 my ( $import, $unimport ) = Moose::Exporter->build_import_methods(
     with_caller => [qw(nickname server port channels plugins)],
