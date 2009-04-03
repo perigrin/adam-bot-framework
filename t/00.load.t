@@ -1,7 +1,9 @@
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 BEGIN {
-use_ok( 'Pip' );
+    use_ok('Adam');
+    use_ok('Moses');
 }
 
-diag( "Testing Pip $Pip::VERSION" );
+diag("Testing Adam $Adam::VERSION");
+diag("Testing Moses $Moses::VERSION");
