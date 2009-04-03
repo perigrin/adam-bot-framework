@@ -1,6 +1,7 @@
 package Adam::Meta::Method::Command;
 use Moose;
 use Moose::Util::TypeConstraints;
+extends qw(Moose::Meta::Method);
 
 subtype 'Adam::CommandString' => as 'RegexpRef';
 coerce 'Adam::CommandString' => from 'Str' => via { qr/\Q$_\E/ };
