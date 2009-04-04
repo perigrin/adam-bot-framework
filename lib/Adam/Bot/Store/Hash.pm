@@ -11,6 +11,7 @@ has store => (
         get    => 'get',
         set    => 'set',
         delete => 'unset',
+        keys   => 'keys',
     }
 );
 

@@ -19,7 +19,7 @@ has events => (
 
 sub privmsg {
     my $self = shift;
-    $self->irc->yield(privmsg => @_);
+    $self->irc->yield( privmsg => @_ );
 }
 
 sub PCI_register {

@@ -39,6 +39,7 @@ has _nickname => (
 );
 
 sub default_nickname { $_[0]->meta->name }
+sub nick             { shift->_nickname(@_) }
 
 has _server => (
     metaclass => 'MooseX::Getopt::Meta::Attribute',
@@ -77,8 +78,8 @@ sub default_channels {
 }
 
 has _autojoinchannels => (
-	isa		=> 'HashRef',
-	is		=> 'rw',
+    isa => 'HashRef',
+    is  => 'rw',
 );
 
 has _owner => (
@@ -120,9 +121,9 @@ sub core_plugins {
         'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
         'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
         'Core_ISupport'     => 'POE::Component::IRC::Plugin::ISupport',
-		'Core_AutoJoin'		=> POE::Component::IRC::Plugin::AutoJoin->new(
-			Channels => $_[0]->_autojoinchannels,
-		),
+        'Core_AutoJoin'     => POE::Component::IRC::Plugin::AutoJoin->new(
+            Channels => $_[0]->_autojoinchannels,
+        ),
 
 # 'Core_Console'      => POE::Component::IRC::Plugin::Console->new(
 #    bindport => 6669,
@@ -141,11 +142,11 @@ sub default_plugins {
 
 before 'START' => sub {
     my ($self) = @_;
-	my %channels;
-	for ( $self->_channels ) {
-		$channels{$_} = '';
-	}
-	$self->_autojoinchannels(\%channels);
+    my %channels;
+    for ( $self->_channels ) {
+        $channels{$_} = '';
+    }
+    $self->_autojoinchannels( \%channels );
     my $pm = POE::Component::IRC::Plugin::PlugMan->new(
         botowner => $self->owner,
         debug    => 1
@@ -165,15 +166,15 @@ has _irc => (
 );
 
 sub _build__irc {
-	use Data::Dumper;
-	print Dumper $_[0];
+    use Data::Dumper;
+    print Dumper $_[0];
     POE::Component::IRC::State->spawn(
         Nick    => $_[0]->_nickname,
         Server  => $_[0]->_server,
         Port    => $_[0]->_port,
         Ircname => $_[0]->_nickname,
         Options => { trace => 0 },
-		Flood	=> $_[0]->flood,
+        Flood   => $_[0]->flood,
     );
 }
 
@@ -243,8 +244,9 @@ sub run {
     POE::Kernel->run;
 }
 
-no MooseX::POE; # unimport Moose's keywords so they won't accidentally become methods
-1;              # Magic true value required at end of module
+no MooseX::POE
+  ;    # unimport Moose's keywords so they won't accidentally become methods
+1;     # Magic true value required at end of module
 __END__
 
 =head1 NAME
