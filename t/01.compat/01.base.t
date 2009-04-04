@@ -10,7 +10,7 @@ my $store;
     package TestPlugin;
     use Moose;
     extends qw(Adam::Plugin);
-    with qw(Adam::Bot::BasicBot::Pluggable::Compat);
+    with qw(Adam::Compat::Bot::BasicBot::Pluggable);
 
     sub _build_store { $store ||= Adam::Bot::Store::Hash->new() }
     sub help         { 'test' }

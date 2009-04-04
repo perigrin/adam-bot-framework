@@ -1,4 +1,4 @@
-package Adam::Bot::BasicBot::Pluggable::Compat;
+package Adam::Compat::Bot::BasicBot::Pluggable;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
