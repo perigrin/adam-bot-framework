@@ -4,20 +4,14 @@ use Moose::Util::TypeConstraints;
 
 requires qw(help _build_store);
 
-duck_type 'Adam::Bot::Store' => qw(get set unset var);
-
 has store => (
-    isa        => 'Adam::Bot::Store',
+    does       => 'Adam::Bot::Store',
     is         => 'ro',
     lazy_build => 1,
-    handles    => {
-        get        => 'get',
-        set        => 'set',
-        var        => 'var',
-        unset      => 'unset',
-        store_keys => 'keys',
-    }
+    handles    => 'Adam::Bot::Store',
 );
+
+sub store_keys { shift->store->keys }
 
 has bot => (
     isa => 'Adam',
@@ -84,9 +78,6 @@ sub BUILD { shift->init() }
 
 before 'PCI_unregister' => sub { shift->stop() };
 
-sub S_irc_connected { shift->connected(@_) }
-sub S_join          { shift->chanjoin(@_) }
-sub S_part          { shift->chanpart(@_) }
 no Moose::Role;
 1;
 __END__

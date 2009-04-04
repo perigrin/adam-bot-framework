@@ -2,7 +2,7 @@ package Adam::Bot::Store::Hash;
 use Moose;
 use MooseX::AttributeHelpers;
 
-has store => (
+has data => (
     isa        => 'HashRef',
     is         => 'ro',
     lazy_build => 1,
@@ -21,7 +21,10 @@ sub var {
     $self->get($name);
 }
 
-sub _build_store { {} }
+sub _build_data { {} }
+
+
+with qw(Adam::Bot::Store);
 
 no Moose;
 1;
