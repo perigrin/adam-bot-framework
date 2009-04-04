@@ -2,7 +2,7 @@ package Adam::Compat::Bot::BasicBot::Pluggable;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-requires qw(said help _build_store);
+requires qw(help _build_store);
 
 duck_type 'Adam::Bot::Store' => qw(get set unset var);
 
@@ -24,19 +24,63 @@ has bot => (
     is  => 'ro',
 );
 
-sub BUILD { shift->init() }
+#
+# Public Methods
+#
+sub init { }
+sub stop { }
 
-sub init      { }
-sub emoted    { }
 sub connected { }
-sub seen      { }
-sub admin     { }
-sub told      { }
-sub fallback  { }
 sub chanjoin  { }
 sub chanpart  { }
-sub tick      { }
-sub stop      { }
+
+sub say {
+
+    # my $self = shift;
+    # return $self->bot->say(@_);
+}
+
+sub reply {
+
+    # my $self = shift;
+    # return $self->bot->reply(@_);
+}
+
+sub tell {
+
+    # my $self = shift;
+    # my $target = shift;
+    # my $body = shift;
+    # if ($target =~ /^#/) {
+    #   $self->say({ channel => $target, body => $body });
+    # } else {
+    #   $self->say({ channel => 'msg', body => $body, who => $target });
+    # }
+}
+
+sub said {
+    my ( $self, $mess, $pri ) = @_;
+    $mess->{body} =~ s/(^\s*|\s*$)//g if defined $mess->{body};
+
+    return $self->seen($mess)     if ( $pri == 0 );
+    return $self->admin($mess)    if ( $pri == 1 );
+    return $self->told($mess)     if ( $pri == 2 );
+    return $self->fallback($mess) if ( $pri == 3 );
+    return undef;
+}
+
+sub seen     { }
+sub admin    { }
+sub told     { }
+sub fallback { }
+sub emoted   { }
+sub tick     { }
+
+#
+# Hookups
+#
+
+sub BUILD { shift->init() }
 
 before 'PCI_unregister' => sub { shift->stop() };
 
