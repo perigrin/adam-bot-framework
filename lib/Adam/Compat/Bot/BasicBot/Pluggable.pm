@@ -10,7 +10,13 @@ has store => (
     isa        => 'Adam::Bot::Store',
     is         => 'ro',
     lazy_build => 1,
-    handles    => [qw(get set var unset)]
+    handles    => {
+        get        => 'get',
+        set        => 'set',
+        var        => 'var',
+        unset      => 'unset',
+        store_keys => 'keys',
+    }
 );
 
 has bot => (
@@ -30,7 +36,13 @@ sub fallback  { }
 sub chanjoin  { }
 sub chanpart  { }
 sub tick      { }
+sub stop      { }
 
+before 'PCI_unregister' => sub { shift->stop() };
+
+sub S_irc_connected { shift->connected(@_) }
+sub S_join          { shift->chanjoin(@_) }
+sub S_part          { shift->chanpart(@_) }
 no Moose::Role;
 1;
 __END__
