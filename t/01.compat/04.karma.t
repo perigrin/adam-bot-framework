@@ -2,6 +2,7 @@
 $|++;
 use warnings;
 use strict;
+POE::Kernel->run();
 
 use Test::More tests => 33;
 use FindBin qw($Bin);
@@ -13,12 +14,13 @@ use Karma;
     package TestBot;
     use Moses;
     nickname('karmabot');
+    plugins('Karma');
     no Moses;
 }
 
-my $karma = Karma->new( bot => TestBot->new );
+ok( my $karma = Karma->new( bot => TestBot->new ), 'create_new_karma object' );
 
-$karma->set( "user_num_comments", 0 );
+is( $karma->set( "user_num_comments", 0 ), 0, ' set user_num_comments 0' );
 
 is( say('karma alice'), 'alice has karma of 0.', 'inital karma of alice' );
 is(
