@@ -16,38 +16,38 @@ sub init_meta {
 
     my $for = $args{for_class};
     eval qq{package $for; use POE; };
-    
+
     Moose->init_meta(
         for_class  => $for,
         base_class => 'Adam'
     );
 }
 
-sub nickname ($) {
+sub nickname {
     my ( $caller, $name ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
     $class->add_method( 'default_nickname' => sub { return $name } );
 }
 
-sub server ($) {
+sub server {
     my ( $caller, $name ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
     $class->add_method( 'default_server' => sub { return $name } );
 }
 
-sub port ($) {
+sub port {
     my ( $caller, $port ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
     $class->add_method( 'default_port' => sub { return $port } );
 }
 
-sub channels (@) {
+sub channels {
     my ( $caller, @channels ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
     $class->add_method( 'default_channels' => sub { return \@channels } );
 }
 
-sub plugins (@) {
+sub plugins {
     my ( $caller, %plugins ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
     $class->add_method( 'custom_plugins' => sub { return \%plugins } );
