@@ -6,29 +6,21 @@ use Adam;
 
 our $VERSION = $Adam::VERSION;
 
-my ( $import, $unimport ) = Moose::Exporter->build_import_methods(
+Moose::Exporter->setup_import_methods(
     with_caller => [qw(nickname server port channels plugins)],
     also        => [qw(MooseX::POE)],
 );
-
-*unimport = $unimport;
-
-sub import {
-    my ( $traits, @args ) = Moose::Exporter::_strip_traits(@_);
-    $CALLER = Moose::Exporter::_get_caller(@args);
-    eval qq{package $CALLER; use POE; };
-    goto &$import;
-}
 
 sub init_meta {
     my ( $class, %args ) = @_;
 
     my $for = $args{for_class};
-
+    eval qq{package $for; use POE; };
+    
     Moose->init_meta(
         for_class  => $for,
         base_class => 'Adam'
-    );    
+    );
 }
 
 sub nickname ($) {
