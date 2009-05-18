@@ -1,5 +1,6 @@
 # Load the Module::Install bundled in ./inc/
 use inc::Module::Install;
+include     'Module::AutoInstall';
 
 # Define metadata
 name 'Adam';
