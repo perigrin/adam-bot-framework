@@ -1,5 +1,4 @@
 package Moses;
-use Moose       ();
 use MooseX::POE ();
 use Moose::Exporter;
 use Adam;
