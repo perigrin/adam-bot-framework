@@ -3,6 +3,13 @@ use Moose;
 
 # use POE::Component::IRC::Plugin qw( :ALL );
 
+has bot => (
+    isa      => 'Adam',
+    is       => 'ro',
+    required => 1,
+    handles  => [qw(log)],
+);
+
 has irc => (
     isa     => 'Object',
     is      => 'rw',
@@ -20,12 +27,11 @@ has events => (
 sub default_events { [] }
 
 sub PCI_register {
-     my ($self, $irc) = splice @_, 0, 2;
-     $self->irc($irc);
-     $irc->plugin_register( $self, 'SERVER', $self->events );
-     return 1;
- }
-
+    my ( $self, $irc ) = splice @_, 0, 2;
+    $self->irc($irc);
+    $irc->plugin_register( $self, 'SERVER', $self->events );
+    return 1;
+}
 
 sub PCI_unregister {
     my ( $self, $irc ) = @_;

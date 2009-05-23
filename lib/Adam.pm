@@ -1,9 +1,9 @@
 package Adam;
+our $VERSION = '0.0.3';
+
 use MooseX::POE;
 
-our $VERSION = '0.0.3';
 use POE::Component::IRC::Common qw( :ALL );
-use POE::Component::IRC::Plugin qw( :ALL );
 
 use MooseX::AttributeHelpers;
 use POE qw(
@@ -116,7 +116,6 @@ sub core_plugins {
     return {
         'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
         'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
-        'Core_ISupport'     => 'POE::Component::IRC::Plugin::ISupport',
         'Core_AutoJoin'     => POE::Component::IRC::Plugin::AutoJoin->new(
             Channels => { map { $_ => '' } @{ $_[0]->_channels } },
         ),
@@ -190,9 +189,9 @@ event irc_plugin_add => sub {
         my $manager = $plugin;
         $self->debug("loading other plugins");
         for my $name ( sort $self->plugin_names ) {
+            $self->debug("loading $name");
             $plugin = $self->get_plugin($name);
-#            $self->debug("loading: $name => $plugin");            
-            $manager->load( $name => $plugin );
+            $manager->load( $name => $plugin, bot => $self );
         }
     }
 };
@@ -236,25 +235,16 @@ Adam - The Progenitor of IRC Bots
 
 =head1 VERSION
 
-This document describes Adam version 0.0.1
-
+This document describes Adam version 0.0.3
 
 =head1 SYNOPSIS
 
-perl -Ilib -Moses=T -MNet::Twitter -e'event irc_public=>sub {Net::Twitter->new(username=>$ARGV[0],password=>$ARGV[1])->update($_[ARG2])};T->run'
-
-=for author to fill in:
-    Brief code example(s) here showing commonest usage(s).
-    This section will be as far as many users bother reading
-    so make it as educational and exeplary as possible.
-  
+perl -Ilib -Moses=T -MNet::Twitter -e'event irc_public=>sub
+{Net::Twitter->new(username=>$ARGV[0],password=>$ARGV[1])->update($_[ARG2])};T->run'
   
 =head1 DESCRIPTION
 
-=for author to fill in:
-    Write a full description of the module and its features here.
-    Use subsections (=head2, =head3) as appropriate.
-
+Adam is the basis for all the Adam/Moses IRC bots.
 
 =head1 INTERFACE 
 
@@ -263,30 +253,6 @@ perl -Ilib -Moses=T -MNet::Twitter -e'event irc_public=>sub {Net::Twitter->new(u
     interface. These normally consist of either subroutines that may be
     exported, or methods that may be called on objects belonging to the
     classes provided by the module.
-
-
-=head1 DIAGNOSTICS
-
-=for author to fill in:
-    List every single error and warning message that the module can
-    generate (even the ones that will "never happen"), with a full
-    explanation of each problem, one or more likely causes, and any
-    suggested remedies.
-
-=over
-
-=item C<< Error message here, perhaps with %s placeholders >>
-
-[Description of error here]
-
-=item C<< Another error message here >>
-
-[Description of error here]
-
-[Et cetera, et cetera]
-
-=back
-
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
@@ -297,58 +263,25 @@ perl -Ilib -Moses=T -MNet::Twitter -e'event irc_public=>sub {Net::Twitter->new(u
     that can be set. These descriptions must also include details of any
     configuration language used.
   
-Pip requires no configuration files or environment variables.
-
 
 =head1 DEPENDENCIES
 
-=for author to fill in:
-    A list of all the other modules that this module relies upon,
-    including any restrictions on versions, and an indication whether
-    the module is part of the standard Perl distribution, part of the
-    module's distribution, or must be installed separately. ]
-
-None.
-
-
-=head1 INCOMPATIBILITIES
-
-=for author to fill in:
-    A list of any modules that this module cannot be used in conjunction
-    with. This may be due to name conflicts in the interface, or
-    competition for system or program resources, or due to internal
-    limitations of Perl (for example, many modules that use source code
-    filters are mutually incompatible).
-
-None reported.
-
+Moose, MooseX::POE, POE, POE::Component::IRC
 
 =head1 BUGS AND LIMITATIONS
 
-=for author to fill in:
-    A list of known problems with the module, together with some
-    indication Whether they are likely to be fixed in an upcoming
-    release. Also a list of restrictions on the features the module
-    does provide: data types that cannot be handled, performance issues
-    and the circumstances in which they may arise, practical
-    limitations on the size of data sets, special cases that are not
-    (yet) handled, etc.
-
-No bugs have been reported.
-
 Please report any bugs or feature requests to
-C<bug-pip@rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org>.
+C<chris@prather.org>.
 
 
 =head1 AUTHOR
 
-Chris Prather  C<< <perigrin@cpan.org> >>
+Chris Prather  C<< <chris@prather.org> >>
 
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2007, Chris Prather C<< <perigrin@cpan.org> >>. All rights reserved.
+Copyright (c) 2007 Chris Prather  C<< <chris@prather.org> >>, Some rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
