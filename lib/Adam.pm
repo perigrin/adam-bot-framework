@@ -18,6 +18,7 @@ use POE qw(
 );
 
 with qw(
+  MooseX::SimpleConfig
   MooseX::Getopt
   MooseX::LogDispatch::Levels
 );
@@ -77,11 +78,6 @@ sub default_channels {
     [qw( #bots )];
 }
 
-has _autojoinchannels => (
-    isa => 'HashRef',
-    is  => 'rw',
-);
-
 has _owner => (
     accessor  => 'owner',
     metaclass => 'MooseX::Getopt::Meta::Attribute',
@@ -122,7 +118,7 @@ sub core_plugins {
         'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
         'Core_ISupport'     => 'POE::Component::IRC::Plugin::ISupport',
         'Core_AutoJoin'     => POE::Component::IRC::Plugin::AutoJoin->new(
-            Channels => $_[0]->_autojoinchannels,
+            Channels => { map { $_ => '' } @{ $_[0]->_channels } },
         ),
 
 # 'Core_Console'      => POE::Component::IRC::Plugin::Console->new(
@@ -142,11 +138,6 @@ sub default_plugins {
 
 before 'START' => sub {
     my ($self) = @_;
-    my %channels;
-    for ( $self->_channels ) {
-        $channels{$_} = '';
-    }
-    $self->_autojoinchannels( \%channels );
     my $pm = POE::Component::IRC::Plugin::PlugMan->new(
         botowner => $self->owner,
         debug    => 1
@@ -166,8 +157,6 @@ has _irc => (
 );
 
 sub _build__irc {
-    use Data::Dumper;
-    print Dumper $_[0];
     POE::Component::IRC::State->spawn(
         Nick    => $_[0]->_nickname,
         Server  => $_[0]->_server,
@@ -200,9 +189,9 @@ event irc_plugin_add => sub {
     if ( $desc eq 'PlugMan' ) {
         my $manager = $plugin;
         $self->debug("loading other plugins");
-        for my $name ( $self->plugin_names ) {
-            $self->debug("loading: $name");
+        for my $name ( sort $self->plugin_names ) {
             $plugin = $self->get_plugin($name);
+#            $self->debug("loading: $name => $plugin");            
             $manager->load( $name => $plugin );
         }
     }
@@ -211,14 +200,6 @@ event irc_plugin_add => sub {
 event irc_connected => sub {
     my ( $self, $sender ) = @_[ OBJECT, SENDER ];
     $self->info( "connected to " . $self->_server . ':' . $self->_port );
-
-    #deprecated
-    # In any irc_* events SENDER will be the PoCo-IRC session
-    #for ( $self->_channels ) {
-    #    $self->info("joining: $_");
-    #    POE::Kernel->post( $sender => join => $_ );
-    #}
-    #deprecated
     return;
 };
 
