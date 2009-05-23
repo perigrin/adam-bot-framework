@@ -7,6 +7,7 @@ use Adam::Plugin;
 our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
+    with_caller => [qw(events)],
     also        => [qw(MooseX::POE)],
 );
 
@@ -21,3 +22,10 @@ sub init_meta {
         base_class => 'Adam::Plugin'
     );
 }
+
+sub events {
+    my ( $caller, @events ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_events' => sub { return \@events } );
+}
+
