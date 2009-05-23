@@ -15,7 +15,13 @@ sub init_meta {
     my ( $class, %args ) = @_;
 
     my $for = $args{for_class};
-    eval qq{package $for; use POE; };
+    eval qq{
+        package $for; 
+        use POE;
+        use POE::Component::IRC::Common qw( :ALL );
+        use POE::Component::IRC::Plugin qw( :ALL );        
+    };
+
 
     Moose->init_meta(
         for_class  => $for,
