@@ -73,10 +73,7 @@ has _channels => (
     auto_deref => 1,
 );
 
-sub default_channels {
-    no warnings;
-    [qw( #bots )];
-}
+sub default_channels { [ ] }
 
 has _owner => (
     accessor  => 'owner',
@@ -86,7 +83,7 @@ has _owner => (
     builder   => 'default_owner',
 );
 
-sub default_owner { 'perigrin!~perigrin@c-75-72-134-35.hsd1.mn.comcast.net' }
+sub default_owner { 'perigrin!~perigrin@217.168.150.167' }
 
 has _flood => (
     accessor  => 'flood',
@@ -239,40 +236,41 @@ This document describes Adam version 0.0.3
 
 =head1 SYNOPSIS
 
-perl -Ilib -Moses=T -MNet::Twitter -e'event irc_public=>sub
-{Net::Twitter->new(username=>$ARGV[0],password=>$ARGV[1])->update($_[ARG2])};T->run'
-  
+package Echo;
+use Moose;
+extends qw(Adam);
+
+event irc_bot_addressed => sub {
+    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
+    my ($nick) = split /!/, $nickstr;
+    $self->privmsg( $channel => "$nick: $msg" );
+};
+
+__PACKAGE__->run;
+
+no Moose;
+1;
+__END__
+
 =head1 DESCRIPTION
 
 Adam is the basis for all the Adam/Moses IRC bots.
 
 =head1 INTERFACE 
 
-=for author to fill in:
-    Write a separate section listing the public components of the modules
-    interface. These normally consist of either subroutines that may be
-    exported, or methods that may be called on objects belonging to the
-    classes provided by the module.
 
 =head1 CONFIGURATION AND ENVIRONMENT
 
-=for author to fill in:
-    A full explanation of any configuration system(s) used by the
-    module, including the names and locations of any configuration
-    files, and the meaning of any environment variables or properties
-    that can be set. These descriptions must also include details of any
-    configuration language used.
-  
 
 =head1 DEPENDENCIES
 
-Moose, MooseX::POE, POE, POE::Component::IRC
+Moose, MooseX::POE, MooseX::Getopt, MooseX::SimpleConfig, MooseX::LogDispatch,
+POE, POE::Component::IRC
 
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
 C<chris@prather.org>.
-
 
 =head1 AUTHOR
 
