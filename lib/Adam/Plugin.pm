@@ -7,7 +7,6 @@ has irc => (
     isa     => 'Object',
     is      => 'rw',
     clearer => 'clear_irc',
-    handles => [qw(log)]
 );
 
 has events => (
@@ -18,14 +17,7 @@ has events => (
     builder    => 'default_events',
 );
 
-sub default_events { [qw(public)] }
-
-# 
-# sub privmsg {
-#     my $self = shift;
-#     $self->irc->yield( privmsg => @_ );
-# }
-# 
+sub default_events { [] }
 
 sub PCI_register {
      my ($self, $irc) = splice @_, 0, 2;
