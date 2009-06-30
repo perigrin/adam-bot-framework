@@ -18,7 +18,9 @@ has events => (
     builder    => 'default_events',
 );
 
-sub default_events { [] }
+sub default_events {
+    [ grep { s/S_(\w+)/$1/ } shift->meta->get_all_method_names ];
+}
 
 sub PCI_register {
     my ( $self, $irc ) = splice @_, 0, 2;
