@@ -8,7 +8,7 @@ our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
     with_caller => [qw(events)],
-    also        => [qw(MooseX::POE)],
+    also        => [qw(Moose)],
 );
 
 sub init_meta {
