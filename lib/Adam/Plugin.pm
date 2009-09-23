@@ -1,7 +1,6 @@
 package Adam::Plugin;
 use Moose;
-
-# use POE::Component::IRC::Plugin qw( :ALL );
+use namespace::autoclean;
 
 has bot => (
     isa      => 'Adam',
@@ -33,5 +32,47 @@ sub PCI_unregister {
     return 1;
 }
 
-no Moose;
 1;
+
+__END__
+
+=head1 NAME
+
+Adam::Plugin - A class to ...
+
+=head1 DESCRIPTION
+
+The Adam::Plugin class implements ...
+
+=head1 ATTRIBUTES
+
+=head2 bot
+
+=head2 events
+
+=head1 METHODS
+
+=head2 default_events
+
+The default events that this plugin will listen to. It defaults to all methods
+prefixed with 'S_' in the current class.
+
+=head1 DEPENDENCIES
+
+Moose, namespace::autoclean
+
+=head1 BUGS AND LIMITATIONS
+
+None known currently, please email the author if you find any.
+
+=head1 AUTHOR
+
+Chris Prather (perigrin@domain.tld)
+
+=head1 LICENCE
+
+Copyright 2009 by Chris Prather.
+
+This software is free.  It is licensed under the same terms as Perl itself.
+
+=cut

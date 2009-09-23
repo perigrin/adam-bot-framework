@@ -219,74 +219,84 @@ sub run {
 }
 
 1;    # Magic true value required at end of module
+
+
+
 __END__
 
 =head1 NAME
 
-Adam - The Progenitor of IRC Bots
+Adam - The patriarch of IRC Bots
 
 =head1 VERSION
 
-This document describes Adam version 0.04
+This documentation refers to version 0.04.
 
 =head1 SYNOPSIS
 
-	package Echo;
-	use Moose;
-	extends qw(Adam);
-
-	event irc_bot_addressed => sub {
-	    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
-	    my ($nick) = split /!/, $nickstr;
-	    $self->privmsg( $channel => "$nick: $msg" );
-	};
-
-	__PACKAGE__->run;
-
-	no Moose;
-	1;
-	__END__
-
-
-or using the Moses sugar layer
-
-	package Echo;
-	use Moses;
-	use namespace::autoclean;
-	
-	event irc_bot_addressed => sub {
-	    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
-	    my ($nick) = split /!/, $nickstr;
-	    $self->privmsg( $channel => "$nick: $msg" );
-	};
-
-	Echo->run
+See the Synopsis in L<Moses|Moses>. Adam is not meant to be used directly.
 
 =head1 DESCRIPTION
 
-Adam/Moses is a bot framework developed based on the last seven years of
-POE::Component::IRC bots I've built.
+The Adam class implements a basic L<POE::Component::IRC|POE::Component::IRC>
+bot based on L<Moose|Moose> and L<MooseX::POE|MooseX::POE>.
 
+=head1 ATTRIBUTES
 
-=head1 CONFIGURATION AND ENVIRONMENT
+=head2 nickname
 
+Insert description of method here...
+
+=head2 server
+
+Insert description of subroutine here...
+
+=head2 port
+Insert description of subroutine here...
+
+=head2 channels
+
+Insert description of subroutine here...
+
+=head2 owner
+
+Insert description of subroutine here...
+
+=head2 flood
+
+Insert description of subroutine here...
+
+=head2 plugins 
+
+Insert description of subroutine here...
+
+=head1 METHODS
+
+=head2 privmsg (method)
+
+Insert description of method here...
+
+=head2 run (method)
+
+Insert description of method here...
 
 =head1 DEPENDENCIES
 
-Moose, MooseX::POE, MooseX::Getopt, MooseX::SimpleConfig, MooseX::LogDispatch,
-POE, POE::Component::IRC
+MooseX::POE, namespace::autoclean, MooseX::Alias, POE::Component::IRC,
+MooseX::Getopt, MooseX::SimpleConfig, MooseX::LogDispatch
 
 =head1 BUGS AND LIMITATIONS
 
-Please report any bugs or feature requests to C<chris@prather.org>.
+None known currently, please email the author if you find any.
 
 =head1 AUTHOR
 
-Chris Prather  C<< <chris@prather.org> >>
+Chris Prather (chris@prather.org)
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENCE
 
-Copyright (c) 2007 Chris Prather  C<< <chris@prather.org> >>, Some rights reserved.
+Copyright 2007-2009 by Chris Prather.
 
-This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+This software is free.  It is licensed under the same terms as Perl itself.
+
+=cut
