@@ -38,11 +38,11 @@ __END__
 
 =head1 NAME
 
-Adam::Plugin - A class to ...
+Adam::Plugin - A base class for Adam/Moses plugins
 
 =head1 DESCRIPTION
 
-The Adam::Plugin class implements ...
+The Adam::Plugin class implements a base class for Adam/Moses IRC bot plugins.
 
 =head1 ATTRIBUTES
 
@@ -57,9 +57,6 @@ The Adam::Plugin class implements ...
 The default events that this plugin will listen to. It defaults to all methods
 prefixed with 'S_' in the current class.
 
-=head1 DEPENDENCIES
-
-Moose, namespace::autoclean
 
 =head1 BUGS AND LIMITATIONS
 

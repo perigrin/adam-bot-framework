@@ -22,7 +22,6 @@ sub init_meta {
         use POE::Component::IRC::Plugin qw( :ALL );        
     };
 
-
     Moose->init_meta(
         for_class  => $for,
         base_class => 'Adam::Plugin'
@@ -41,49 +40,19 @@ __END__
 
 =head1 NAME
 
-Moses::Plugin - A class to ...
-
-=head1 VERSION
-
-This documentation refers to version 0.01.
-
-=head1 SYNOPSIS
-
-use Moses::Plugin;
+Moses::Plugin - Sugar for Plugins
 
 =head1 DESCRIPTION
 
-The Moses::Plugin class implements ...
+The Moses::Plugin builds a declarative sugar layer for
+L<POE::Component::IRC|POE::Component::IRC> plugins based on the
+L<Adam::Plugin|Adam::Plugin> class.
 
-=head1 SUBROUTINES / METHODS
+=head1 FUNCTIONS
 
-=head2 init_meta
-
-Parameters:
-    none
-
-Insert description of subroutine here...
-
-=head2 events
-
-Parameters:
-    none
+=head2 events (@events)
 
 Insert description of subroutine here...
-
-=head1 DEPENDENCIES
-
-Modules used, version dependencies, core yes/no
-
-Moose::Exporter
-
-Adam::Plugin
-
-POE
-
-=head1 NOTES
-
-...
 
 =head1 BUGS AND LIMITATIONS
 
@@ -91,11 +60,11 @@ None known currently, please email the author if you find any.
 
 =head1 AUTHOR
 
-Chris Prather (perigrin@domain.tld)
+Chris Prather (chris@prather.org)
 
 =head1 LICENCE
 
-Copyright 2009 by Chris Prather.
+Copyright 2007-2009 by Chris Prather.
 
 This software is free.  It is licensed under the same terms as Perl itself.
 

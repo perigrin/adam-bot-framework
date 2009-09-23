@@ -61,80 +61,71 @@ __END__
 
 =head1 NAME
 
-Moses - A class to ...
+Moses - A framework for building IRC bots quickly and easily.
 
 =head1 VERSION
 
-This documentation refers to version 0.01.
+This documentation refers to version 0.04.
 
 =head1 SYNOPSIS
 
-use Moses;
+	package SampleBot;
+	use Moses;
+	use namespace::autoclean;
+	
+	server 'irc.perl.org';
+	nickname 'sample-bot';
+	channels '#bots';
+
+	has message => (
+	    isa     => 'Str',
+	    is      => 'rw',
+	    default => 'Hello',
+	);
+
+	event irc_bot_addressed => sub {
+	    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
+	    my ($nick) = split /!/, $nickstr;
+	    $self->privmsg( $channel => "$nick: ${ \$self->message }" );
+	};
+
+	__PACKAGE__->run unless caller;
 
 =head1 DESCRIPTION
 
-The Moses class implements ...
+Moses is some declarative sugar for building an IRC bot based on the
+L<Adam|Adam> IRC Bot. Moses is designed to minimize the amount of work you
+have to do to make an IRC bot functional, and to make the process as
+declarative as possible. 
 
-=head1 SUBROUTINES / METHODS
+=head1 FUNCTIONS
 
-=head2 init_meta
-
-Parameters:
-    none
-
-Insert description of subroutine here...
-
-=head2 nickname
-
-Parameters:
-    caller
-    name
+=head2 nickname (Str $name)
 
 Insert description of subroutine here...
 
-=head2 server
-
-Parameters:
-    caller
-    name
+=head2 server (Str $server)
 
 Insert description of subroutine here...
 
-=head2 port
-
-Parameters:
-    caller
-    port
+=head2 port (Int $port)
 
 Insert description of subroutine here...
 
-=head2 channels
-
-Parameters:
-    none
+=head2 channels (@channels)
 
 Insert description of subroutine here...
 
-=head2 plugins
-
-Parameters:
-    none
-
+=head2 plugins (@plugins)
+ 
 Insert description of subroutine here...
 
 =head1 DEPENDENCIES
 
-Modules used, version dependencies, core yes/no
+The same dependencies as L<Adam|Adam>. 
 
-Moose::Exporter
-
-Adam
-
-POE
-
-=head1 NOTES
-
-...
+MooseX::POE, namespace::autoclean, MooseX::Alias, POE::Component::IRC,
+MooseX::Getopt, MooseX::SimpleConfig, MooseX::LogDispatch
 
 =head1 BUGS AND LIMITATIONS
 
@@ -142,11 +133,11 @@ None known currently, please email the author if you find any.
 
 =head1 AUTHOR
 
-Chris Prather (perigrin@domain.tld)
+Chris Prather (chris@prather.org)
 
 =head1 LICENCE
 
-Copyright 2009 by Chris Prather.
+Copyright 2007-2009 by Chris Prather.
 
 This software is free.  It is licensed under the same terms as Perl itself.
 
