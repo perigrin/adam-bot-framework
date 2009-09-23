@@ -1,11 +1,9 @@
 package Adam;
-our $VERSION = '0.0.3';
-
+our $VERSION = '0.04';
 use MooseX::POE;
+use namespace::autoclean;
 
 use POE::Component::IRC::Common qw( :ALL );
-
-use MooseX::AttributeHelpers;
 use POE qw(
   Component::IRC::State
   Component::IRC::Plugin::PlugMan
@@ -17,6 +15,8 @@ use POE qw(
   Component::IRC::Plugin::AutoJoin
 );
 
+use MooseX::Aliases;
+
 with qw(
   MooseX::SimpleConfig
   MooseX::Getopt
@@ -24,88 +24,85 @@ with qw(
 );
 
 has logger => (
-    metaclass  => 'NoGetopt',
     isa        => 'Log::Dispatch::Config',
     is         => 'rw',
+    traits     => ['NoGetopt'],
     lazy_build => 1,
 );
 
-has _nickname => (
-    metaclass => 'MooseX::Getopt::Meta::Attribute',
-    cmd_flag  => 'nickname',
-    isa       => 'Str',
-    is        => 'ro',
-    required  => 1,
-    builder   => 'default_nickname',
+has nickname => (
+    isa      => 'Str',
+    reader   => 'get_nickname',
+    alias    => 'nick',
+    traits   => ['Getopt'],
+    cmd_flag => 'nickname',
+    required => 1,
+    builder  => 'default_nickname',
 );
 
 sub default_nickname { $_[0]->meta->name }
-sub nick             { shift->_nickname(@_) }
 
-has _server => (
-    metaclass => 'MooseX::Getopt::Meta::Attribute',
-    cmd_flag  => 'server',
-    isa       => 'Str',
-    is        => 'ro',
-    required  => 1,
-    builder   => 'default_server',
+has server => (
+    isa      => 'Str',
+    reader   => 'get_server',
+    traits   => ['Getopt'],
+    cmd_flag => 'server',
+    required => 1,
+    builder  => 'default_server',
 );
 
 sub default_server { 'irc.perl.org' }
 
-has _port => (
-    metaclass => 'MooseX::Getopt::Meta::Attribute',
-    cmd_flag  => 'port',
-    isa       => 'Int',
-    is        => 'ro',
-    required  => 1,
-    builder   => 'default_port',
+has port => (
+    isa      => 'Int',
+    reader   => 'get_port',
+    traits   => ['Getopt'],
+    cmd_flag => 'port',
+    required => 1,
+    builder  => 'default_port',
 );
 
 sub default_port { 6667 }
 
-has _channels => (
-    metaclass  => 'MooseX::Getopt::Meta::Attribute',
-    cmd_flag   => 'channels',
+has channels => (
     isa        => 'ArrayRef',
-    is         => 'ro',
+    reader     => 'get_channels',
+    traits     => ['Getopt'],
+    cmd_flag   => 'channels',
     builder    => 'default_channels',
     auto_deref => 1,
 );
 
-sub default_channels { [ ] }
+sub default_channels { [] }
 
-has _owner => (
-    accessor  => 'owner',
-    metaclass => 'MooseX::Getopt::Meta::Attribute',
-    cmd_flag  => 'owner',
-    isa       => 'Str',
-    builder   => 'default_owner',
+has owner => (
+    isa      => 'Str',
+    accessor => 'get_owner',
+    traits   => ['Getopt'],
+    cmd_flag => 'owner',
+    builder  => 'default_owner',
 );
 
 sub default_owner { 'perigrin!~perigrin@217.168.150.167' }
 
-has _flood => (
-    accessor  => 'flood',
-    metaclass => 'MooseX::Getopt::Meta::Attribute',
-    cmd_flag  => 'flood',
-    isa       => 'Bool',
-    builder   => 'default_flood',
+has flood => (
+    isa     => 'Bool',
+    reader  => 'can_flood',
+    builder => 'default_flood',
 );
 
 sub default_flood { 0 }
 
-has _plugins => (
-    metaclass  => 'Collection::Hash',
+has plugins => (
     isa        => 'HashRef',
-    lazy_build => 1,
+    traits     => [ 'Hash', 'NoGetopt' ],
+    lazy       => 1,
     auto_deref => 1,
-    accessor   => 'plugins',
     builder    => 'default_plugins',
-    provides   => {
-        keys  => 'plugin_names',
-        get   => 'get_plugin',
-        count => 'has_plugins',
+    handles    => {
+        plugin_names => 'keys',
+        get_plugin   => 'get',
+        has_plugins  => 'count'
     }
 );
 
@@ -114,7 +111,7 @@ sub core_plugins {
         'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
         'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
         'Core_AutoJoin'     => POE::Component::IRC::Plugin::AutoJoin->new(
-            Channels => { map { $_ => '' } @{ $_[0]->_channels } },
+            Channels => { map { $_ => '' } @{ $_[0]->get_channels } },
         ),
 
 # 'Core_Console'      => POE::Component::IRC::Plugin::Console->new(
@@ -135,7 +132,7 @@ sub default_plugins {
 before 'START' => sub {
     my ($self) = @_;
     my $pm = POE::Component::IRC::Plugin::PlugMan->new(
-        botowner => $self->owner,
+        botowner => $self->get_owner,
         debug    => 1
     );
     $self->plugin_add( 'PlugMan' => $pm );
@@ -154,12 +151,12 @@ has _irc => (
 
 sub _build__irc {
     POE::Component::IRC::State->spawn(
-        Nick    => $_[0]->_nickname,
-        Server  => $_[0]->_server,
-        Port    => $_[0]->_port,
-        Ircname => $_[0]->_nickname,
+        Nick    => $_[0]->get_nickname,
+        Server  => $_[0]->get_server,
+        Port    => $_[0]->get_port,
+        Ircname => $_[0]->get_nickname,
         Options => { trace => 0 },
-        Flood   => $_[0]->flood,
+        Flood   => $_[0]->can_flood,
     );
 }
 
@@ -175,7 +172,7 @@ sub START {
     # and register and connect to the specified server.
     $poe_kernel->post( $self->irc_session_id => register => 'all' );
     $poe_kernel->post( $self->irc_session_id => connect  => {} );
-    $self->info( 'connecting to ' . $self->_server . ':' . $self->_port );
+    $self->info( 'connecting to ' . $self->get_server . ':' . $self->get_port );
     return;
 }
 
@@ -195,7 +192,7 @@ event irc_plugin_add => sub {
 
 event irc_connected => sub {
     my ( $self, $sender ) = @_[ OBJECT, SENDER ];
-    $self->info( "connected to " . $self->_server . ':' . $self->_port );
+    $self->info( "connected to " . $self->get_server . ':' . $self->get_port );
     return;
 };
 
@@ -221,9 +218,7 @@ sub run {
     POE::Kernel->run;
 }
 
-no MooseX::POE
-  ;    # unimport Moose's keywords so they won't accidentally become methods
-1;     # Magic true value required at end of module
+1;    # Magic true value required at end of module
 __END__
 
 =head1 NAME
@@ -232,31 +227,45 @@ Adam - The Progenitor of IRC Bots
 
 =head1 VERSION
 
-This document describes Adam version 0.0.3
+This document describes Adam version 0.04
 
 =head1 SYNOPSIS
 
-package Echo;
-use Moose;
-extends qw(Adam);
+	package Echo;
+	use Moose;
+	extends qw(Adam);
 
-event irc_bot_addressed => sub {
-    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
-    my ($nick) = split /!/, $nickstr;
-    $self->privmsg( $channel => "$nick: $msg" );
-};
+	event irc_bot_addressed => sub {
+	    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
+	    my ($nick) = split /!/, $nickstr;
+	    $self->privmsg( $channel => "$nick: $msg" );
+	};
 
-__PACKAGE__->run;
+	__PACKAGE__->run;
 
-no Moose;
-1;
-__END__
+	no Moose;
+	1;
+	__END__
+
+
+or using the Moses sugar layer
+
+	package Echo;
+	use Moses;
+	use namespace::autoclean;
+	
+	event irc_bot_addressed => sub {
+	    my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
+	    my ($nick) = split /!/, $nickstr;
+	    $self->privmsg( $channel => "$nick: $msg" );
+	};
+
+	Echo->run
 
 =head1 DESCRIPTION
 
-Adam is the basis for all the Adam/Moses IRC bots.
-
-=head1 INTERFACE 
+Adam/Moses is a bot framework developed based on the last seven years of
+POE::Component::IRC bots I've built.
 
 
 =head1 CONFIGURATION AND ENVIRONMENT
@@ -269,13 +278,11 @@ POE, POE::Component::IRC
 
 =head1 BUGS AND LIMITATIONS
 
-Please report any bugs or feature requests to
-C<chris@prather.org>.
+Please report any bugs or feature requests to C<chris@prather.org>.
 
 =head1 AUTHOR
 
 Chris Prather  C<< <chris@prather.org> >>
-
 
 =head1 LICENCE AND COPYRIGHT
 
@@ -283,27 +290,3 @@ Copyright (c) 2007 Chris Prather  C<< <chris@prather.org> >>, Some rights reserv
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.
-
-
-=head1 DISCLAIMER OF WARRANTY
-
-BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
-FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
-OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
-PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
-EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
-ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
-YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
-NECESSARY SERVICING, REPAIR, OR CORRECTION.
-
-IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
-WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
-REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE
-LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL,
-OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE
-THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
-RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
-FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
-SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGES.
