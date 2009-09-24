@@ -1,5 +1,5 @@
 package Adam;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 use MooseX::POE;
 use namespace::autoclean;
 
@@ -230,7 +230,7 @@ Adam - The patriarch of IRC Bots
 
 =head1 VERSION
 
-This documentation refers to version 0.04.
+This documentation refers to version 0.05.
 
 =head1 SYNOPSIS
 

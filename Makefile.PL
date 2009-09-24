@@ -16,6 +16,7 @@ requires 'MooseX::SimpleConfig' => '0.03';
 requires 'MooseX::LogDispatch'  => '1.200';
 
 build_requires 'Test::More' => '0.94';
+build_requires 'Test::Deep' => '0.103';
 
 no_index 'directory' => 'ex';
 

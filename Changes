@@ -1,4 +1,10 @@
 Revision history for Adam
+0.05  2009-09-24
+	+ Add missing build_requires for Test::Deep
+0.04  2009-09-23
+	+ Remove dependency on MooseX::AttributeHelpers in favor of Moose's Native::Attributes
+	+ Add MooseX::Aliases dependency for nick/nickname
+	+ refactor code and clean up generally for release to CPAN
 0.0.3 2009-04-02
 	+ Updated to use the latest MooseX::POE (perigrin)
 
