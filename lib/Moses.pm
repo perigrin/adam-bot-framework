@@ -102,30 +102,34 @@ declarative as possible.
 
 =head2 nickname (Str $name)
 
-Insert description of subroutine here...
+Set the nickname for the bot. Default's to the current package.
 
 =head2 server (Str $server)
 
-Insert description of subroutine here...
+Set the server for the bot.
 
 =head2 port (Int $port)
 
-Insert description of subroutine here...
+Set the port for the bot's server. Default's to 6667.
 
 =head2 channels (@channels)
 
-Insert description of subroutine here...
+Supply a list of channels for the bot to join upon connecting.
 
 =head2 plugins (@plugins)
  
-Insert description of subroutine here...
+Extra L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin> objects or
+class names to load into the bot.
 
 =head1 DEPENDENCIES
 
 The same dependencies as L<Adam|Adam>. 
 
-MooseX::POE, namespace::autoclean, MooseX::Alias, POE::Component::IRC,
-MooseX::Getopt, MooseX::SimpleConfig, MooseX::LogDispatch
+L<MooseX::POE|MooseX::POE>, L<namespace::autoclean|namespace::autoclean>,
+L<MooseX::Alias|MooseX::Alias>, L<POE::Component::IRC|POE::Component::IRC>,
+L<MooseX::Getopt|MooseX::Getopt>,
+L<MooseX::SimpleConfig|MooseX::SimpleConfig>,
+L<MooseX::LogDispatch|MooseX::LogDispatch>
 
 =head1 BUGS AND LIMITATIONS
 

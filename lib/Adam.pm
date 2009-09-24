@@ -243,47 +243,55 @@ bot based on L<Moose|Moose> and L<MooseX::POE|MooseX::POE>.
 
 =head1 ATTRIBUTES
 
-=head2 nickname
+=head2 nickname (Str)
 
-Insert description of method here...
+The IRC nickname for the bot, it will default to the package name.
 
-=head2 server
+=head2 server (Str)
 
-Insert description of subroutine here...
+The IRC server to connect to.
 
-=head2 port
-Insert description of subroutine here...
+=head2 port (Int)
 
-=head2 channels
+The port for the IRC server, defaults to 6667
 
-Insert description of subroutine here...
+=head2 channels (ArrayRef[Str])
 
-=head2 owner
+IRC channels to connect to.
 
-Insert description of subroutine here...
+=head2 owner (Str)
 
-=head2 flood
+The hostmask of the ower of the bot. The owner can control the bot's plugins
+through IRC using the <POE::Component::IRC::Plugin::Plugman|Plugman>
+interface.
 
-Insert description of subroutine here...
+=head2 flood (Bool)
 
-=head2 plugins 
+Disable flood protection. Defaults to False.
 
-Insert description of subroutine here...
+=head2 plugins (HashRef)
+
+A list of plugins associated with the IRC bot. See L<Moses::Plugin> for more
+details.
 
 =head1 METHODS
 
-=head2 privmsg (method)
+=head2 privmsg (Str $who, Str $what)
 
-Insert description of method here...
+Send message C<$what> as a private message to C<$who>, a channel or nick.
 
-=head2 run (method)
+=head2 run ()
 
-Insert description of method here...
+Start the IRC bot. This method also works as a Class Method and will
+instanciate the bot if called as such.
 
 =head1 DEPENDENCIES
 
-MooseX::POE, namespace::autoclean, MooseX::Alias, POE::Component::IRC,
-MooseX::Getopt, MooseX::SimpleConfig, MooseX::LogDispatch
+L<MooseX::POE|MooseX::POE>, L<namespace::autoclean|namespace::autoclean>,
+L<MooseX::Alias|MooseX::Alias>, L<POE::Component::IRC|POE::Component::IRC>,
+L<MooseX::Getopt|MooseX::Getopt>,
+L<MooseX::SimpleConfig|MooseX::SimpleConfig>,
+L<MooseX::LogDispatch|MooseX::LogDispatch>
 
 =head1 BUGS AND LIMITATIONS
 
