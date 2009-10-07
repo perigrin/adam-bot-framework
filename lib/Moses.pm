@@ -6,7 +6,7 @@ use Adam;
 our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
-    with_caller => [qw(nickname server port channels plugins)],
+    with_caller => [qw(nickname server port channels plugins username owner flood password extra_args)],
     also        => [qw(MooseX::POE)],
 );
 
@@ -56,6 +56,38 @@ sub plugins {
     $class->add_method( 'custom_plugins' => sub { return \%plugins } );
 }
 
+sub username {
+    my ( $caller, $username ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_username' => sub { return $username } );
+}
+
+sub password {
+    my ( $caller, $password ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_password' => sub { return $password } );
+}
+
+sub flood {
+    my ( $caller, $flood ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_flood' => sub { return $flood } );
+}
+
+sub owner {
+    my ( $caller, $owner ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_owner' => sub { return $owner } );
+}
+
+sub extra_args {
+    my ( $caller, %extra_args ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'custom_extra_args' => sub { return \%extra_args } );
+}
+
+
+
 1;
 __END__
 
@@ -104,6 +136,14 @@ declarative as possible.
 
 Set the nickname for the bot. Default's to the current package.
 
+=head2 username(Str)
+
+The username which we should use
+
+=head2 password(Str)
+
+The server password which we shoulduse
+
 =head2 server (Str $server)
 
 Set the server for the bot.
@@ -111,6 +151,16 @@ Set the server for the bot.
 =head2 port (Int $port)
 
 Set the port for the bot's server. Default's to 6667.
+
+=head2 owner (Str)
+
+The hostmask of the ower of the bot. The owner can control the bot's plugins
+through IRC using the <POE::Component::IRC::Plugin::Plugman|Plugman>
+interface.
+
+=head2 flood (Bool)
+
+Disable flood protection. Defaults to False.
 
 =head2 channels (@channels)
 
@@ -120,6 +170,11 @@ Supply a list of channels for the bot to join upon connecting.
  
 Extra L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin> objects or
 class names to load into the bot.
+
+=head2 extra_args (HashRef)
+
+A list of extra arguments to pass to the irc constructor.
+
 
 =head1 DEPENDENCIES
 

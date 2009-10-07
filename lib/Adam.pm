@@ -85,10 +85,42 @@ has owner => (
 
 sub default_owner { 'perigrin!~perigrin@217.168.150.167' }
 
+has username => (
+    isa      => 'Str',
+    accessor => 'get_username',
+    traits   => ['Getopt'],
+    cmd_flag => 'username',
+    builder  => 'default_username',
+);
+
+sub default_username { 'adam' }
+
+has password => (
+    isa      => 'Str',
+    accessor => 'get_password',
+    traits   => ['Getopt'],
+    cmd_flag => 'password',
+    builder  => 'default_password',
+);
+
+sub default_password { '' }
+
+has extra_args => (
+    isa      => 'HashRef',
+    accessor => 'get_extra_args',
+    traits   => ['Hash', 'Getopt'],
+    cmd_flag => 'extra_args',
+    builder  => 'default_extra_args',
+);
+
+sub default_extra_args { {} }
+
 has flood => (
-    isa     => 'Bool',
-    reader  => 'can_flood',
-    builder => 'default_flood',
+    isa       => 'Bool',
+    reader    => 'can_flood',
+	traits    => ['Getopt'],
+	cmd_flag  => 'flood',
+    builder   => 'default_flood',
 );
 
 sub default_flood { 0 }
@@ -157,6 +189,9 @@ sub _build__irc {
         Ircname => $_[0]->get_nickname,
         Options => { trace => 0 },
         Flood   => $_[0]->can_flood,
+		Username => $_[0]->get_username,
+		Password => $_[0]->get_password,
+		$_[0]->get_extra_args,
     );
 }
 
@@ -255,6 +290,14 @@ The IRC server to connect to.
 
 The port for the IRC server, defaults to 6667
 
+=head2 username(Str)
+
+The username which we should use
+
+=head2 password(Str)
+
+The server password which we shoulduse
+
 =head2 channels (ArrayRef[Str])
 
 IRC channels to connect to.
@@ -273,6 +316,10 @@ Disable flood protection. Defaults to False.
 
 A list of plugins associated with the IRC bot. See L<Moses::Plugin> for more
 details.
+
+=head2 extra_args (HashRef)
+
+A list of extra arguments to pass to the irc constructor.
 
 =head1 METHODS
 
