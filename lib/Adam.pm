@@ -178,7 +178,7 @@ has poco_irc_options => (
     builder  => 'default_poco_irc_options',
 );
 
-sub default_poco_irc_args { { trace => 0 } }
+sub default_poco_irc_options { { trace => 0 } }
 
 has _irc => (
     isa        => 'POE::Component::IRC',
@@ -201,7 +201,7 @@ sub _build__irc {
         Flood    => $_[0]->can_flood,
         Username => $_[0]->get_username,
         Password => $_[0]->get_password,
-        %{ $_[0]->get_extra_args },
+        %{ $_[0]->get_poco_irc_args },
     );
 }
 
@@ -325,9 +325,13 @@ Disable flood protection. Defaults to False.
 A list of plugins associated with the IRC bot. See L<Moses::Plugin> for more
 details.
 
-=head2 extra_args (HashRef)
+=head2 poco_irc_args (HashRef)
 
-A list of extra arguments to pass to the irc constructor.
+A list of arguments to pass to the irc constructor.
+
+=head2 poco_irc_options (HashRef)
+
+A list of options to pass to the irc constructor.
 
 =head1 METHODS
 

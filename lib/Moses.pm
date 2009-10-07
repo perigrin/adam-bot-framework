@@ -6,7 +6,7 @@ use Adam;
 our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
-    with_caller => [qw(nickname server port channels plugins username owner flood password extra_args)],
+    with_caller => [qw(nickname server port channels plugins username owner flood password poco_irc_args poco_irc_options)],
     also        => [qw(MooseX::POE)],
 );
 
@@ -86,14 +86,11 @@ sub poco_irc_args {
     $class->add_method( 'default_poco_irc_args' => sub { return \%extra_args } );
 }
 
-
 sub poco_irc_options {
     my ( $caller, %options ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
     $class->add_method( 'default_poco_irc_options' => sub { return \%options } );
 }
-
-
 
 1;
 __END__
@@ -178,10 +175,13 @@ Supply a list of channels for the bot to join upon connecting.
 Extra L<POE::Component::IRC::Plugin|POE::Component::IRC::Plugin> objects or
 class names to load into the bot.
 
-=head2 extra_args (HashRef)
+=head2 poco_irc_args (HashRef)
 
-A list of extra arguments to pass to the irc constructor.
+A list of arguments to pass to the irc constructor.
 
+=head2 poco_irc_options (HashRef)
+
+A list of options to pass to the irc constructor.
 
 =head1 DEPENDENCIES
 
