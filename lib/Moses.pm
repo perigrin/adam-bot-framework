@@ -80,10 +80,17 @@ sub owner {
     $class->add_method( 'default_owner' => sub { return $owner } );
 }
 
-sub extra_args {
+sub poco_irc_args {
     my ( $caller, %extra_args ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
-    $class->add_method( 'custom_extra_args' => sub { return \%extra_args } );
+    $class->add_method( 'default_poco_irc_args' => sub { return \%extra_args } );
+}
+
+
+sub poco_irc_options {
+    my ( $caller, %options ) = @_;
+    my $class = Moose::Meta::Class->initialize($caller);
+    $class->add_method( 'default_poco_irc_options' => sub { return \%options } );
 }
 
 

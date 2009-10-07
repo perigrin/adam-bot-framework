@@ -105,22 +105,12 @@ has password => (
 
 sub default_password { '' }
 
-has extra_args => (
-    isa      => 'HashRef',
-    accessor => 'get_extra_args',
-    traits   => ['Hash', 'Getopt'],
-    cmd_flag => 'extra_args',
-    builder  => 'default_extra_args',
-);
-
-sub default_extra_args { {} }
-
 has flood => (
-    isa       => 'Bool',
-    reader    => 'can_flood',
-	traits    => ['Getopt'],
-	cmd_flag  => 'flood',
-    builder   => 'default_flood',
+    isa      => 'Bool',
+    reader   => 'can_flood',
+    traits   => ['Getopt'],
+    cmd_flag => 'flood',
+    builder  => 'default_flood',
 );
 
 sub default_flood { 0 }
@@ -170,6 +160,26 @@ before 'START' => sub {
     $self->plugin_add( 'PlugMan' => $pm );
 };
 
+has poco_irc_args => (
+    isa      => 'HashRef',
+    accessor => 'get_poco_irc_args',
+    traits   => [ 'Hash', 'Getopt' ],
+    cmd_flag => 'extra_args',
+    builder  => 'default_poco_irc_args',
+);
+
+sub default_poco_irc_args { {} }
+
+has poco_irc_options => (
+    isa      => 'HashRef',
+    accessor => 'get_poco_irc_options',
+    traits   => [ 'Hash', 'Getopt' ],
+    cmd_flag => 'extra_args',
+    builder  => 'default_poco_irc_options',
+);
+
+sub default_poco_irc_args { { trace => 0 } }
+
 has _irc => (
     isa        => 'POE::Component::IRC',
     accessor   => 'irc',
@@ -183,15 +193,15 @@ has _irc => (
 
 sub _build__irc {
     POE::Component::IRC::State->spawn(
-        Nick    => $_[0]->get_nickname,
-        Server  => $_[0]->get_server,
-        Port    => $_[0]->get_port,
-        Ircname => $_[0]->get_nickname,
-        Options => { trace => 0 },
-        Flood   => $_[0]->can_flood,
-		Username => $_[0]->get_username,
-		Password => $_[0]->get_password,
-		$_[0]->get_extra_args,
+        Nick     => $_[0]->get_nickname,
+        Server   => $_[0]->get_server,
+        Port     => $_[0]->get_port,
+        Ircname  => $_[0]->get_nickname,
+        Options  => $_[0]->get_poco_irc_options,
+        Flood    => $_[0]->can_flood,
+        Username => $_[0]->get_username,
+        Password => $_[0]->get_password,
+        %{ $_[0]->get_extra_args },
     );
 }
 
@@ -254,8 +264,6 @@ sub run {
 }
 
 1;    # Magic true value required at end of module
-
-
 
 __END__
 
