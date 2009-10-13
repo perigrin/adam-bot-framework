@@ -178,7 +178,7 @@ has poco_irc_options => (
     builder  => 'default_poco_irc_options',
 );
 
-sub default_poco_irc_args { { trace => 0 } }
+sub default_poco_irc_options { { trace => 0 } }
 
 has _irc => (
     isa        => 'POE::Component::IRC',

@@ -6,8 +6,22 @@ use Adam;
 our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
-    with_caller => [qw(nickname server port channels plugins username owner flood password extra_args)],
-    also        => [qw(MooseX::POE)],
+    with_caller => [
+        qw(
+          nickname
+          server
+          port
+          channels
+          plugins
+          username
+          owner
+          flood
+          password
+          poco_irc_args
+          poco_irc_options
+          )
+    ],
+    also => [qw(MooseX::POE)],
 );
 
 sub init_meta {
@@ -83,17 +97,16 @@ sub owner {
 sub poco_irc_args {
     my ( $caller, %extra_args ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
-    $class->add_method( 'default_poco_irc_args' => sub { return \%extra_args } );
+    $class->add_method( 'default_poco_irc_args' => sub { return \%extra_args }
+    );
 }
-
 
 sub poco_irc_options {
     my ( $caller, %options ) = @_;
     my $class = Moose::Meta::Class->initialize($caller);
-    $class->add_method( 'default_poco_irc_options' => sub { return \%options } );
+    $class->add_method( 'default_poco_irc_options' => sub { return \%options }
+    );
 }
-
-
 
 1;
 __END__
