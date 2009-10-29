@@ -2,7 +2,7 @@ package Adam::Logger::Default;
 use Moose;
 
 with qw(
-  Adam::Logging::API
+  Adam::Logger::API
   MooseX::LogDispatch::Levels
 );
 
