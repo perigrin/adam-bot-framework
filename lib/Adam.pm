@@ -226,7 +226,7 @@ sub START {
 
 sub load_plugin {
     my ( $self, $name, $plugin ) = @_;
-    $self->plugin_manager->load_plugin( $name => $plugin, bot => $self );
+    $self->plugin_manager->load( $name => $plugin, bot => $self );
 }
 
 event irc_plugin_add => sub {
