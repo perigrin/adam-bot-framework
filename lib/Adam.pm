@@ -23,11 +23,11 @@ with qw(
 );
 
 has logger => (
-    does       => 'Adam::Logging::API',
+    does       => 'Adam::Logger::API',
     is         => 'ro',
     traits     => ['NoGetopt'],
     lazy_build => 1,
-    handles    => 'Adam::Logging::API',
+    handles    => 'Adam::Logger::API',
 );
 
 sub _build_logger { Adam::Logger::Default->new() }

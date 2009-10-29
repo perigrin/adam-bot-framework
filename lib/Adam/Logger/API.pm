@@ -1,4 +1,4 @@
-package Adam::Logging::API;
+package Adam::Logger::API;
 use Moose::Role;
 use namespace::autoclean;
 

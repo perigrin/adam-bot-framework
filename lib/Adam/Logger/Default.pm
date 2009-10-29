@@ -1,4 +1,4 @@
-package Adam::Logger;
+package Adam::Logger::Default;
 use Moose;
 
 with qw(
