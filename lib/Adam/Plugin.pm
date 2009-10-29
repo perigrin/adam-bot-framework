@@ -6,7 +6,16 @@ has bot => (
     isa      => 'Adam',
     is       => 'ro',
     required => 1,
-    handles  => [qw(log owner irc yield privmsg nick)],
+    handles  => [
+        qw(
+          log
+          owner
+          irc
+          yield
+          privmsg
+          nick
+          )
+    ],
 );
 
 has events => (
@@ -18,7 +27,7 @@ has events => (
 );
 
 sub default_events {
-    [ grep { s/S_(\w+)/$1/ } shift->meta->get_all_method_names ];
+    [ grep { s/(?:S|U)_(\w+)/$1/ } shift->meta->get_all_method_names ];
 }
 
 sub PCI_register {
@@ -30,6 +39,11 @@ sub PCI_register {
 sub PCI_unregister {
     my ( $self, $irc ) = @_;
     return 1;
+}
+
+sub _default {
+    my ( $self, $irc, $event ) = @_;
+    $self->log->notice("_default called for $event");
 }
 
 1;
