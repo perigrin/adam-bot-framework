@@ -17,8 +17,9 @@ class Moses::Declare::Syntax::BotKeyword extends
         push @$val,
           (
             EventKeyword->new(
-                identifier           => 'on',
-                modifier_type        => 'on',
+                identifier => 'on',
+                prototype_injections =>
+                  { declarator => 'on', injections => ['ArrayRef $poe_args'], },
             ),
           );
         return $val;
