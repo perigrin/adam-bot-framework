@@ -11,11 +11,11 @@ bot MasterMold {
         default => 'Mutant Detected!',
     );
 
-    event irc_bot_addressed => sub {
-        my ( $self, $nickstr, $channel, $msg ) = @_[ OBJECT, ARG0, ARG1, ARG2 ];
+    on irc_bot_addressed {
+        my ( $nickstr, $channel, $msg ) = @_[ ARG0, ARG1, ARG2 ];
         my ($nick) = split /!/, $nickstr;
         $self->privmsg( $channel => "$nick: ${ \$self->message }" );
-    };
+    }
 }
 
 my @bots = map { MasterMold->new( nickname => "Sentinel_${_}" ) } ( 1 .. 2 );
