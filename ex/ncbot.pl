@@ -50,8 +50,8 @@ bot NetCat {
           given ($cmd) {
             when (/$RE{COMMAND}{echo}{-keep}/) {
                 if ($1) {
-                    my @targets = split ',', $1;					
-					$self->privmsg( $_ => $2 ) for map { s/^@//; warn $_; $_ } @targets;
+                    my @targets = split ',', $1;                    
+                    $self->privmsg( $_ => $2 ) for map { s/^@//; warn $_; $_ } @targets;
                 }
                 else {
                     $self->privmsg( $self->get_channels->[0] => $2 );
