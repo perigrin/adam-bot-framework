@@ -1,8 +1,7 @@
 use MooseX::Declare;
 
-class Moses::Declare extends MooseX::Declare is dirty {
-    use aliased 'Moses::Declare::Syntax::BotKeyword', 'BotKeyword';
-    clean;
+class Moses::Declare extends MooseX::Declare {
+    use aliased 'Moses::Declare::Syntax::BotKeyword';
     around keywords( ClassName $self: )
       { $self->$orig, BotKeyword->new( identifier => 'bot' ), };
 }

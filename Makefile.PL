@@ -15,6 +15,7 @@ requires 'MooseX::Getopt'       => '0.22';
 requires 'MooseX::SimpleConfig' => '0.03';
 requires 'MooseX::LogDispatch'  => '1.200';
 requires 'MooseX::Declare'      => '0.31';
+requires 'aliased'              => '0.30';
 
 build_requires 'Test::More' => '0.94';
 build_requires 'Test::Deep' => '0.103';
