@@ -1,4 +1,12 @@
 Revision history for Adam
+
+0.06  2009-10-30
+	+ Moses::Declare 
+		MooseX::Declare derived syntax for writing Bots, very
+        experimental.
+	+ Adam::Logger
+		Refactor of the logging API so that we can use alternate Logging
+        implementations, ie Log4perl support.
 0.05  2009-09-24
 	+ Add missing build_requires for Test::Deep
 0.04  2009-09-23
