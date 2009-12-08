@@ -7,7 +7,6 @@ bot NetCat {
     server 'irc.perl.org';
     channels '#moses';
 
-    use Moose::Util::TypeConstraints;
     use Regexp::Common qw(pattern);
     use aliased 'POE::Component::Server::TCP' => 'TCPServer';
 
