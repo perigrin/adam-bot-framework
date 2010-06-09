@@ -200,6 +200,7 @@ has _irc => (
 );
 
 sub _build__irc {
+	my $self = shift;
     POE::Component::IRC::State->spawn(
         Nick     => $_[0]->get_nickname,
         Server   => $_[0]->get_server,
@@ -209,6 +210,7 @@ sub _build__irc {
         Flood    => $_[0]->can_flood,
         Username => $_[0]->get_username,
         Password => $_[0]->get_password,
+		$self->poco_irc_args,
     );
 }
 
