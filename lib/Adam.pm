@@ -210,7 +210,7 @@ sub _build__irc {
         Flood    => $self->can_flood,
         Username => $self->get_username,
         Password => $self->get_password,
-		%{ $self->poco_irc_args },
+		%{ $self->get_poco_irc_args },
     );
 }
 
