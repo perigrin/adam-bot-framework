@@ -1,20 +1,22 @@
 Revision history for Adam
-
+0.07 2010-06-10
+    + Fix _build__irc to pull from the bot configuration (stephan48)
+    + Add RT Plugin example and netcat bot example
 0.06  2009-10-30
-	+ Moses::Declare 
-		MooseX::Declare derived syntax for writing Bots, very
+    + Moses::Declare
+        MooseX::Declare derived syntax for writing Bots, very
         experimental.
-	+ Adam::Logger
-		Refactor of the logging API so that we can use alternate Logging
+    + Adam::Logger
+        Refactor of the logging API so that we can use alternate Logging
         implementations, ie Log4perl support.
 0.05  2009-09-24
-	+ Add missing build_requires for Test::Deep
+    + Add missing build_requires for Test::Deep
 0.04  2009-09-23
-	+ Remove dependency on MooseX::AttributeHelpers in favor of Moose's Native::Attributes
-	+ Add MooseX::Aliases dependency for nick/nickname
-	+ refactor code and clean up generally for release to CPAN
+    + Remove dependency on MooseX::AttributeHelpers in favor of Moose's Native::Attributes
+    + Add MooseX::Aliases dependency for nick/nickname
+    + refactor code and clean up generally for release to CPAN
 0.0.3 2009-04-02
-	+ Updated to use the latest MooseX::POE (perigrin)
+    + Updated to use the latest MooseX::POE (perigrin)
 
 0.0.2  Thu Feb 19 00:44:00 2009
        Added PoCo::IRC::Plugin::AutoJoin
