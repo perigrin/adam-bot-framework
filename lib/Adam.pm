@@ -202,15 +202,15 @@ has _irc => (
 sub _build__irc {
 	my $self = shift;
     POE::Component::IRC::State->spawn(
-        Nick     => $_[0]->get_nickname,
-        Server   => $_[0]->get_server,
-        Port     => $_[0]->get_port,
-        Ircname  => $_[0]->get_nickname,
-        Options  => $_[0]->get_poco_irc_options,
-        Flood    => $_[0]->can_flood,
-        Username => $_[0]->get_username,
-        Password => $_[0]->get_password,
-		$self->poco_irc_args,
+        Nick     => $self->get_nickname,
+        Server   => $self->get_server,
+        Port     => $self->get_port,
+        Ircname  => $self->get_nickname,
+        Options  => $self->get_poco_irc_options,
+        Flood    => $self->can_flood,
+        Username => $self->get_username,
+        Password => $self->get_password,
+		%{ $self->poco_irc_args },
     );
 }
 
