@@ -1,5 +1,5 @@
 package Moses;
-use MooseX::POE ();
+#use MooseX::POE ();
 use Moose::Exporter;
 use Adam;
 
@@ -21,7 +21,7 @@ Moose::Exporter->setup_import_methods(
           poco_irc_options
           )
     ],
-    also => [qw(MooseX::POE)],
+    also => [qw(Moose)],
 );
 
 sub init_meta {

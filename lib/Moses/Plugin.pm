@@ -1,6 +1,6 @@
 package Moses::Plugin;
 use Moose       ();
-use MooseX::POE ();
+#use MooseX::POE ();
 use Moose::Exporter;
 use Adam::Plugin;
 

@@ -1,18 +1,14 @@
 package Adam;
 our $VERSION = '0.07';
-use MooseX::POE;
+use Moose;
 use namespace::autoclean;
 
 use POE::Component::IRC::Common qw( :ALL );
-use POE qw(
-  Component::IRC::State
-  Component::IRC::Plugin::PlugMan
-  Component::IRC::Plugin::Connector
-  Component::IRC::Plugin::ISupport
-  Component::IRC::Plugin::NickReclaim
-  Component::IRC::Plugin::BotAddressed
-  Component::IRC::Plugin::AutoJoin
-);
+use POE qw( Component::IRC::State );
+
+extends qw(Reflex::Base);
+use Reflex::POE::Session;
+use Reflex::Trait::Observed;
 
 use MooseX::Aliases;
 use Adam::Logger::Default;
@@ -31,6 +27,70 @@ has logger => (
 );
 
 sub _build_logger { Adam::Logger::Default->new() }
+
+use POE qw(
+  Component::IRC::Plugin::PlugMan
+  Component::IRC::Plugin::Connector
+  Component::IRC::Plugin::ISupport
+  Component::IRC::Plugin::NickReclaim
+  Component::IRC::Plugin::BotAddressed
+  Component::IRC::Plugin::AutoJoin
+);
+
+has plugins => (
+    isa        => 'HashRef',
+    traits     => [ 'Hash', 'NoGetopt' ],
+    lazy       => 1,
+    auto_deref => 1,
+    builder    => 'default_plugins',
+    handles    => {
+        plugin_names => 'keys',
+        get_plugin   => 'get',
+        has_plugins  => 'count'
+    }
+);
+
+sub core_plugins {
+    return {
+        'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
+        'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
+        'Core_AutoJoin'     => POE::Component::IRC::Plugin::AutoJoin->new(
+            Channels => { map { $_ => '' } @{ $_[0]->get_channels } },
+        ),
+        'Core_NickReclaim' =>
+          POE::Component::IRC::Plugin::NickReclaim->new( poll => 30 ),
+    };
+    3;
+}
+
+sub custom_plugins { {} }
+
+sub default_plugins {
+    return { %{ $_[0]->core_plugins }, %{ $_[0]->custom_plugins } };
+}
+
+has plugin_manager => (
+    isa        => 'POE::Component::IRC::Plugin::PlugMan',
+    is         => 'ro',
+    lazy_build => 1,
+);
+
+sub _build_plugin_manager {
+    POE::Component::IRC::Plugin::PlugMan->new(
+        botowner => $_[0]->get_owner,
+        debug    => 1
+    );
+}
+
+after 'BUILD' => sub {
+    my ($self) = @_;
+    $self->plugin_add( 'PlugMan' => $self->plugin_manager );
+};
+
+sub load_plugin {
+    my ( $self, $name, $plugin ) = @_;
+    $self->plugin_manager->load( $name => $plugin, bot => $self );
+}
 
 has nickname => (
     isa      => 'Str',
@@ -117,55 +177,6 @@ has flood => (
 
 sub default_flood { 0 }
 
-has plugins => (
-    isa        => 'HashRef',
-    traits     => [ 'Hash', 'NoGetopt' ],
-    lazy       => 1,
-    auto_deref => 1,
-    builder    => 'default_plugins',
-    handles    => {
-        plugin_names => 'keys',
-        get_plugin   => 'get',
-        has_plugins  => 'count'
-    }
-);
-
-sub core_plugins {
-    return {
-        'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
-        'Core_BotAddressed' => 'POE::Component::IRC::Plugin::BotAddressed',
-        'Core_AutoJoin'     => POE::Component::IRC::Plugin::AutoJoin->new(
-            Channels => { map { $_ => '' } @{ $_[0]->get_channels } },
-        ),
-        'Core_NickReclaim' =>
-          POE::Component::IRC::Plugin::NickReclaim->new( poll => 30 ),
-    };
-}
-
-sub custom_plugins { {} }
-
-sub default_plugins {
-    return { %{ $_[0]->core_plugins }, %{ $_[0]->custom_plugins } };
-}
-
-has plugin_manager => (
-    isa        => 'POE::Component::IRC::Plugin::PlugMan',
-    is         => 'ro',
-    lazy_build => 1,
-);
-
-sub _build_plugin_manager {
-    POE::Component::IRC::Plugin::PlugMan->new(
-        botowner => $_[0]->get_owner,
-        debug    => 1
-    );
-}
-
-before 'START' => sub {
-    my ($self) = @_;
-    $self->plugin_add( 'PlugMan' => $self->plugin_manager );
-};
-
 has poco_irc_args => (
     isa      => 'HashRef',
     accessor => 'get_poco_irc_args',
@@ -190,17 +201,17 @@ sub default_poco_irc_options { { trace => 0 } }
 
 has _irc => (
     isa        => 'POE::Component::IRC',
-    accessor   => 'irc',
     lazy_build => 1,
     handles    => {
         irc_session_id => 'session_id',
         server_name    => 'server_name',
         plugin_add     => 'plugin_add',
+        _irc_yield     => 'yield',
     }
 );
 
 sub _build__irc {
-	my $self = shift;
+    my $self = shift;
     POE::Component::IRC::State->spawn(
         Nick     => $self->get_nickname,
         Server   => $self->get_server,
@@ -210,8 +221,29 @@ sub _build__irc {
         Flood    => $self->can_flood,
         Username => $self->get_username,
         Password => $self->get_password,
-		%{ $self->get_poco_irc_args },
+        %{ $self->get_poco_irc_args },
     );
+}
+
+observes poco_watcher => (
+    isa  => 'Reflex::POE::Session',
+    role => 'poco',
+);
+
+sub BUILD {
+    my $self = shift;
+    $self->poco_watcher(
+        Reflex::POE::Session->new( sid => $self->irc_session_id ),
+    );
+
+    $self->run_within_session(
+        sub {
+            $self->_irc_yield( register => "all" );
+            $self->_irc_yield( connect  => {} );
+        }
+    );
+    $self->info( 'connecting to ' . $self->get_server . ':' . $self->get_port );
+
 }
 
 sub privmsg {
@@ -219,21 +251,9 @@ sub privmsg {
     POE::Kernel->post( $self->irc_session_id => privmsg => @_ );
 }
 
-sub START {
-    my ( $self, $heap ) = @_[ OBJECT, HEAP ];
-    $poe_kernel->post( $self->irc_session_id => register => 'all' );
-    $poe_kernel->post( $self->irc_session_id => connect  => {} );
-    $self->info( 'connecting to ' . $self->get_server . ':' . $self->get_port );
-    return;
-}
-
-sub load_plugin {
-    my ( $self, $name, $plugin ) = @_;
-    $self->plugin_manager->load( $name => $plugin, bot => $self );
-}
-
-event irc_plugin_add => sub {
-    my ( $self, $desc, $plugin ) = @_[ OBJECT, ARG0, ARG1 ];
+sub on_poco_irc_plugin_add {
+    my ( $self, $args ) = @_;
+    my ( $desc, $plugin ) = @$args{ 0, 1, };
     $self->info("loaded plugin: $desc");
     if ( $desc eq 'PlugMan' ) {
         $self->debug("loading other plugins");
@@ -243,16 +263,18 @@ event irc_plugin_add => sub {
             $self->load_plugin( $name => $plugin );
         }
     }
-};
+}
 
-event irc_connected => sub {
-    my ( $self, $sender ) = @_[ OBJECT, SENDER ];
+sub on_poco_irc_001 {
+    my ($self) = @_;
     $self->info( "connected to " . $self->get_server . ':' . $self->get_port );
+    $self->_irc_yield( join => $_ ) for $self->get_channels;
     return;
-};
+}
 
 # We registered for all events, this will produce some debug info.
-sub DEFAULT {
+
+sub on_default {
     my ( $self, $event, $args ) = @_[ OBJECT, ARG0 .. $#_ ];
     my @output = ("$event: ");
 
@@ -269,8 +291,8 @@ sub DEFAULT {
 }
 
 sub run {
-    $_[0]->new_with_options unless blessed $_[0];
-    POE::Kernel->run;
+    my $bot = $_[0]->new_with_options unless blessed $_[0];
+    $bot->run_all;
 }
 
 1;    # Magic true value required at end of module
