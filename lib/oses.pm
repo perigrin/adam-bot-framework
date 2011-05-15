@@ -1,4 +1,5 @@
 package oses;
+# ABSTRACT: A shortcut in the fashion of oose.pm
 use strict;
 use warnings;
 
@@ -10,10 +11,6 @@ BEGIN {
 
 1;
 __END__
-
-=head1 NAME
-
-oses.pm - A shortcut in the fashion of oose.pm
 
 =head1 SYNOPSIS
 

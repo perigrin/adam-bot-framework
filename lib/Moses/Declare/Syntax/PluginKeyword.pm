@@ -1,4 +1,5 @@
 use MooseX::Declare;
+# ABSTRACT: Plugin keyword for the blue Declare power
 
 class Moses::Declare::Syntax::PluginKeyword extends
   MooseX::Declare::Syntax::Keyword::Class {

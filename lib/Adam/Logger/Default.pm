@@ -1,4 +1,5 @@
 package Adam::Logger::Default;
+# ABSTRACT: Default logger for Adam bots
 use Moose;
 
 with qw(

@@ -1,4 +1,5 @@
 use MooseX::Declare;
+# ABSTRACT: Bot keyword for the blue Declare power
 
 class Moses::Declare::Syntax::BotKeyword extends
   MooseX::Declare::Syntax::Keyword::Class {

@@ -1,5 +1,5 @@
 package Adam;
-our $VERSION = '0.09';
+# ABSTRACT: The patriarch of IRC Bots
 use MooseX::POE;
 use namespace::autoclean;
 
@@ -277,14 +277,6 @@ sub run {
 
 __END__
 
-=head1 NAME
-
-Adam - The patriarch of IRC Bots
-
-=head1 VERSION
-
-This documentation refers to version 0.05.
-
 =head1 SYNOPSIS
 
 See the Synopsis in L<Moses|Moses>. Adam is not meant to be used directly.
@@ -360,16 +352,6 @@ L<MooseX::LogDispatch|MooseX::LogDispatch>
 
 =head1 BUGS AND LIMITATIONS
 
-None known currently, please email the author if you find any.
-
-=head1 AUTHOR
-
-Chris Prather (chris@prather.org)
-
-=head1 LICENCE
-
-Copyright 2007-2009 by Chris Prather.
-
-This software is free.  It is licensed under the same terms as Perl itself.
+None known currently, please report bugs to L<https://rt.cpan.org/Ticket/Create.html?Queue=Adam>
 
 =cut

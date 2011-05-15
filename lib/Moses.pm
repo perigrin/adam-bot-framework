@@ -1,9 +1,8 @@
 package Moses;
+# ABSTRACT: A framework for building IRC bots quickly and easily.
 use MooseX::POE ();
 use Moose::Exporter;
 use Adam;
-
-our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
     with_caller => [
@@ -111,14 +110,6 @@ sub poco_irc_options {
 1;
 __END__
 
-=head1 NAME
-
-Moses - A framework for building IRC bots quickly and easily.
-
-=head1 VERSION
-
-This documentation refers to version 0.04.
-
 =head1 SYNOPSIS
 
 	package SampleBot;
@@ -208,16 +199,6 @@ L<MooseX::LogDispatch|MooseX::LogDispatch>
 
 =head1 BUGS AND LIMITATIONS
 
-None known currently, please email the author if you find any.
-
-=head1 AUTHOR
-
-Chris Prather (chris@prather.org)
-
-=head1 LICENCE
-
-Copyright 2007-2009 by Chris Prather.
-
-This software is free.  It is licensed under the same terms as Perl itself.
+None known currently, please report bugs to L<https://rt.cpan.org/Ticket/Create.html?Queue=Adam>
 
 =cut

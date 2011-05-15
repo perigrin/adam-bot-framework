@@ -1,10 +1,9 @@
 package Moses::Plugin;
+# ABSTRACT: Sugar for Moses Plugins
 use Moose       ();
 use MooseX::POE ();
 use Moose::Exporter;
 use Adam::Plugin;
-
-our $VERSION = $Adam::VERSION;
 
 Moose::Exporter->setup_import_methods(
     with_caller => [qw(events)],
@@ -38,10 +37,6 @@ sub events {
 
 __END__
 
-=head1 NAME
-
-Moses::Plugin - Sugar for Plugins
-
 =head1 DESCRIPTION
 
 The Moses::Plugin builds a declarative sugar layer for
@@ -56,16 +51,6 @@ Insert description of subroutine here...
 
 =head1 BUGS AND LIMITATIONS
 
-None known currently, please email the author if you find any.
-
-=head1 AUTHOR
-
-Chris Prather (chris@prather.org)
-
-=head1 LICENCE
-
-Copyright 2007-2009 by Chris Prather.
-
-This software is free.  It is licensed under the same terms as Perl itself.
+None known currently, please report bugs to L<https://rt.cpan.org/Ticket/Create.html?Queue=Adam>
 
 =cut

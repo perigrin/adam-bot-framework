@@ -1,4 +1,5 @@
 package Adam::Logger::API;
+# ABSTRACT: API Role for the Adam logger
 use Moose::Role;
 use namespace::autoclean;
 
