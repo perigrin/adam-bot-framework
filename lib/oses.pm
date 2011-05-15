@@ -1,5 +1,6 @@
 package oses;
 # ABSTRACT: A shortcut in the fashion of oose.pm
+# Dist::Zilla: +PodWeaver
 use strict;
 use warnings;
 

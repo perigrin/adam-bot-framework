@@ -1,5 +1,5 @@
 use MooseX::Declare;
-# ABSTRACT: Moses with Declare power (it's blue!)
+# Dist::Zilla: -PodWeaver
 
 class Moses::Declare extends MooseX::Declare {
     use aliased 'Moses::Declare::Syntax::BotKeyword';

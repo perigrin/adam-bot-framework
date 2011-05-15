@@ -1,5 +1,6 @@
 package Adam::Plugin;
 # ABSTRACT: A base class for Adam/Moses plugins
+# Dist::Zilla: +PodWeaver
 use Moose;
 use namespace::autoclean;
 

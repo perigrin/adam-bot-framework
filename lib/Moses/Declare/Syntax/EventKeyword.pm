@@ -1,5 +1,5 @@
 use MooseX::Declare;
-# ABSTRACT: Event keyword for the blue Declare power
+# Dist::Zilla: -PodWeaver
 
 class Moses::Declare::Syntax::EventKeyword extends
   MooseX::Declare::Syntax::Keyword::Method {

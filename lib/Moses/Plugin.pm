@@ -1,5 +1,6 @@
 package Moses::Plugin;
 # ABSTRACT: Sugar for Moses Plugins
+# Dist::Zilla: +PodWeaver
 use Moose       ();
 use MooseX::POE ();
 use Moose::Exporter;

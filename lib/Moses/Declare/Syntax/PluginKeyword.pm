@@ -1,5 +1,5 @@
 use MooseX::Declare;
-# ABSTRACT: Plugin keyword for the blue Declare power
+# Dist::Zilla: -PodWeaver
 
 class Moses::Declare::Syntax::PluginKeyword extends
   MooseX::Declare::Syntax::Keyword::Class {

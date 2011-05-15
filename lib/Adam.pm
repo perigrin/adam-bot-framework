@@ -1,5 +1,6 @@
 package Adam;
 # ABSTRACT: The patriarch of IRC Bots
+# Dist::Zilla: +PodWeaver
 use MooseX::POE;
 use namespace::autoclean;
 

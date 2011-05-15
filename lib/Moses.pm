@@ -1,5 +1,6 @@
 package Moses;
 # ABSTRACT: A framework for building IRC bots quickly and easily.
+# Dist::Zilla: +PodWeaver
 use MooseX::POE ();
 use Moose::Exporter;
 use Adam;

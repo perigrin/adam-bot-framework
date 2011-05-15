@@ -1,5 +1,6 @@
 package Adam::Logger::Default;
 # ABSTRACT: Default logger for Adam bots
+# Dist::Zilla: +PodWeaver
 use Moose;
 
 with qw(
