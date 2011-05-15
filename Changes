@@ -1,4 +1,5 @@
 Revision history for Adam
+    + Plugins' USER events were not being registered correctly. Fixed.
 0.09 2011-05-15
     + Fix a bug that involves the plugin method events() by making it private. (perigrin)
 	+ Continue to not document it. (perigrin)

@@ -32,7 +32,9 @@ sub default_events {
 
 sub PCI_register {
     my ( $self, $irc ) = splice @_, 0, 2;
-    $irc->plugin_register( $self, 'SERVER', $self->_list_events );
+    my @events = $self->_list_events;
+    $irc->plugin_register($self, 'SERVER', grep { /^S_/ } @events);
+    $irc->plugin_register($self, 'USER', grep { /^U_/ } @events);
     return 1;
 }
 
