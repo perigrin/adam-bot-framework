@@ -18,6 +18,6 @@ plugin SamplePlugin {
 }
 
 ok( my $plugin = SamplePlugin->new(bot => $bot), 'new plugin' );
-is_deeply( scalar $plugin->events, ['bot_addressed'], 'right events' );
+is_deeply( $plugin->_events, ['bot_addressed'], 'right events' );
 
 done_testing;
