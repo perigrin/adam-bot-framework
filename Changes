@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.90      2011-05-15 18:54:53 Europe/Berlin
 	+ dzil'ed distribution (Getty)
 	+ Plugins' USER events were not being registered correctly. Fixed. (Hinrik)
 
