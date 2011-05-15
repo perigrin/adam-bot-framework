@@ -1,5 +1,5 @@
 package Adam;
-our $VERSION = '0.07';
+our $VERSION = '0.09';
 use MooseX::POE;
 use namespace::autoclean;
 

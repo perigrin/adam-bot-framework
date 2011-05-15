@@ -1,4 +1,9 @@
 Revision history for Adam
+0.09 2011-05-15
+    + Fix a bug that involves the plugin method events() by making it private. (perigrin)
+	+ Continue to not document it. (perigrin)
+0.08 2010-06-17
+    + Fix a mistake we accidentally released in 0.07
 0.07 2010-06-10
     + Fix _build__irc to pull from the bot configuration (stephan48)
     + Add RT Plugin example and netcat bot example
