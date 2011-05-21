@@ -29,14 +29,16 @@ has _events => (
 );
 
 sub default_events {
-    [ grep { s/(?:S|U)_(\w+)/$1/ } shift->meta->get_all_method_names ];
+    [ grep { s/([SU]_\w+)/$1/ } shift->meta->get_all_method_names ];
 }
 
 sub PCI_register {
     my ( $self, $irc ) = splice @_, 0, 2;
     my @events = $self->_list_events;
-    $irc->plugin_register($self, 'SERVER', grep { /^S_/ } @events);
-    $irc->plugin_register($self, 'USER', grep { /^U_/ } @events);
+    my @s_events = map { s/^S_//; $_ } grep { /^S_/ } @events;
+    my @u_events = map { s/^U_//; $_ } grep { /^U_/ } @events;
+    $irc->plugin_register($self, 'SERVER', @s_events) if @s_events;
+    $irc->plugin_register($self, 'USER', @u_events) if @u_events;
     return 1;
 }
 
