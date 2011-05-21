@@ -29,7 +29,7 @@ has _events => (
 );
 
 sub default_events {
-    [ grep { s/([SU]_\w+)/$1/ } shift->meta->get_all_method_names ];
+    [ grep { /^[SU]_\w+/ } shift->meta->get_all_method_names ];
 }
 
 sub PCI_register {
