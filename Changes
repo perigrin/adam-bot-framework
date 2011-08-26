@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	+ Added missing requirement
 	+ Plugin event registration was broken by the previous release. Fixed.
 
 0.90      2011-05-15 18:54:53 Europe/Berlin
