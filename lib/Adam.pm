@@ -423,8 +423,6 @@ has _loop => (
     predicate => 'has_loop',
 );
 
-=cut
-
 sub async {
     my $self = shift;
     require IO::Async::Loop::POE;
