@@ -29,8 +29,14 @@ See the Synopsis in L<Moses>. Adam is not meant to be used directly.
 
 =head1 DESCRIPTION
 
-The Adam class implements a basic L<POE::Component::IRC> bot based on
-L<Moose> and L<MooseX::POE>.
+The Adam class implements an IRC bot based on L<POE::Component::IRC::State>,
+L<Moose>, and L<MooseX::POE>. It supports two event loop modes: the default
+L<POE> loop via C<run()>, and an L<IO::Async> mode via C<async()> that allows
+integration with other L<IO::Async>-based components through
+L<IO::Async::Loop::POE>.
+
+Adam is not meant to be used directly — see L<Moses> for the declarative
+sugar layer.
 
 =cut
 
@@ -416,10 +422,6 @@ has _loop => (
     traits    => ['NoGetopt'],
     predicate => 'has_loop',
 );
-
-=attr _loop
-
-The L<IO::Async::Loop> instance when running in async mode. Used internally.
 
 =cut
 

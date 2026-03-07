@@ -1,6 +1,10 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	+ Updated POD: Adam and Moses now document IO::Async support and dual event loop modes
+	+ ai-bot example: multi-channel support with per-channel message buffers
+	+ ai-bot example: SYSTEM_PROMPT env var for custom system prompt additions
+	+ ai-bot example: error messages only shown in main channel
 
 1.000     2026-03-07 03:12:40Z
 	+ Switched to @Author::GETTY Dist::Zilla plugin bundle

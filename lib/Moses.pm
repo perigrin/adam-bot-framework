@@ -54,9 +54,14 @@ Moose::Exporter->setup_import_methods(
 
 =head1 DESCRIPTION
 
-Moses is declarative sugar for building IRC bots based on the L<Adam> IRC Bot.
-Moses is designed to minimize the amount of work you have to do to make an IRC
-bot functional, and to make the process as declarative as possible.
+Moses is declarative sugar for building IRC bots based on the L<Adam> IRC bot
+framework. Moses is designed to minimize the amount of work you have to do to
+make an IRC bot functional, and to make the process as declarative as possible.
+
+Bots can run in two modes: the default L<POE> event loop via C<run()>, or an
+L<IO::Async> mode via C<async()> that enables integration with
+L<IO::Async>-based components such as L<Net::Async::MCP> or
+L<Net::Async::HTTP>. The async mode requires L<IO::Async::Loop::POE>.
 
 =cut
 
