@@ -1,6 +1,6 @@
-Revision history for {{$dist->name}}
+Revision history for Adam
 
-{{$NEXT}}
+1.000     2026-03-07 03:12:40Z
 	+ Switched to @Author::GETTY Dist::Zilla plugin bundle
 	+ Added IO::Async support via ->async() method (requires IO::Async::Loop::POE)
 	+ Added ->stop() method for cleanly stopping both POE and IO::Async event loops
