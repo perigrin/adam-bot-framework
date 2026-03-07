@@ -1,6 +1,6 @@
 package oses;
 # ABSTRACT: A shortcut in the fashion of oose.pm
-
+our $VERSION = '1.001';
 use strict;
 use warnings;
 
