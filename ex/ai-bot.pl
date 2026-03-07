@@ -14,6 +14,7 @@
 #   BUFFER_DELAY=1.5            Seconds to buffer messages before processing (default: 1.5)
 #   LINE_DELAY=1.5              Delay between outgoing IRC lines (default: 1.5)
 #   IDLE_PING=1800              Seconds of silence before idle ping (default: 1800)
+#   SYSTEM_PROMPT=...           Additional text appended to the system prompt
 
 use strict;
 use warnings;
@@ -84,16 +85,28 @@ package MemoryStore {
     my $rows;
     if ($nick) {
       $rows = $self->_dbh->selectall_arrayref(
-        'SELECT nick, content FROM notes WHERE nick = ? AND content LIKE ? ORDER BY id DESC LIMIT ?',
+        'SELECT id, nick, content FROM notes WHERE nick = ? AND content LIKE ? ORDER BY id DESC LIMIT ?',
         { Slice => {} }, $nick, "%$query%", $limit,
       );
     } else {
       $rows = $self->_dbh->selectall_arrayref(
-        'SELECT nick, content FROM notes WHERE content LIKE ? ORDER BY id DESC LIMIT ?',
+        'SELECT id, nick, content FROM notes WHERE content LIKE ? ORDER BY id DESC LIMIT ?',
         { Slice => {} }, "%$query%", $limit,
       );
     }
-    return join("\n---\n", map { "[$_->{nick}] $_->{content}" } @$rows);
+    return join("\n", map { "#$_->{id} [$_->{nick}] $_->{content}" } @$rows);
+  }
+
+  sub update_note {
+    my ($self, $id, $content) = @_;
+    my $rows = $self->_dbh->do('UPDATE notes SET content = ? WHERE id = ?', undef, $content, $id);
+    return $rows > 0;
+  }
+
+  sub delete_note {
+    my ($self, $id) = @_;
+    my $rows = $self->_dbh->do('DELETE FROM notes WHERE id = ?', undef, $id);
+    return $rows > 0;
   }
 
   __PACKAGE__->meta->make_immutable;
@@ -124,7 +137,11 @@ has _mcp => ( is => 'rw', traits => ['NoGetopt'] );
 has _raider => ( is => 'rw', traits => ['NoGetopt'] );
 has _msg_buffer => (
   is => 'rw', traits => ['NoGetopt'],
-  default => sub { [] },
+  default => sub { {} },  # { channel => [messages] }
+);
+has _buffer_timers => (
+  is => 'rw', traits => ['NoGetopt'],
+  default => sub { {} },  # { channel => alarm_id }
 );
 has _processing => (
   is => 'rw', traits => ['NoGetopt'],
@@ -176,8 +193,7 @@ sub _build_mcp_server {
       $delay = 10 if $delay < 10;
       $delay = 3600 if $delay > 3600;
       my $reason = $args->{reason};
-      my $channels = $self->get_channels;
-      my $channel = ref $channels ? $channels->[0] : $channels;
+      my $channel = $self->_default_channel;
       POE::Kernel->delay_add( _alarm_fired => $delay, $channel, $reason );
       return $tool->text_result("Alarm set for ${delay}s: $reason");
     },
@@ -220,19 +236,57 @@ sub _build_mcp_server {
 
   $server->tool(
     name         => 'recall_notes',
-    description  => 'Search your saved notes. Optionally filter by nick to recall what you know about a specific person.',
+    description  => 'List or search your saved notes. Provide nick to see all notes about a person, query to search by keyword, or both.',
     input_schema => {
       type       => 'object',
       properties => {
-        query => { type => 'string', description => 'Keyword to search for in notes' },
-        nick  => { type => 'string', description => 'Optional: only search notes about this nick' },
+        query => { type => 'string', description => 'Optional: keyword to search for in notes' },
+        nick  => { type => 'string', description => 'Optional: only notes about this nick' },
       },
-      required => ['query'],
     },
     code => sub {
       my ($tool, $args) = @_;
-      my $result = $self->memory->recall_notes($args->{nick}, $args->{query});
+      my $result = $self->memory->recall_notes($args->{nick}, $args->{query} || '');
       return $tool->text_result($result || 'No matching notes found.');
+    },
+  );
+
+  $server->tool(
+    name         => 'update_note',
+    description  => 'Update an existing note by its ID. Use recall_notes first to find the ID.',
+    input_schema => {
+      type       => 'object',
+      properties => {
+        id      => { type => 'number', description => 'The note ID (shown as #N in recall_notes output)' },
+        content => { type => 'string', description => 'The new content for this note' },
+      },
+      required => ['id', 'content'],
+    },
+    code => sub {
+      my ($tool, $args) = @_;
+      if ($self->memory->update_note($args->{id}, $args->{content})) {
+        return $tool->text_result("Note #$args->{id} updated.");
+      }
+      return $tool->text_result("Note #$args->{id} not found.");
+    },
+  );
+
+  $server->tool(
+    name         => 'delete_note',
+    description  => 'Delete a note by its ID. Use recall_notes first to find the ID.',
+    input_schema => {
+      type       => 'object',
+      properties => {
+        id => { type => 'number', description => 'The note ID to delete (shown as #N in recall_notes output)' },
+      },
+      required => ['id'],
+    },
+    code => sub {
+      my ($tool, $args) = @_;
+      if ($self->memory->delete_note($args->{id})) {
+        return $tool->text_result("Note #$args->{id} deleted.");
+      }
+      return $tool->text_result("Note #$args->{id} not found.");
     },
   );
 
@@ -300,10 +354,8 @@ async sub _setup_raider {
   my $nick = $self->get_nickname;
   my $model = $engine->model;
   my $provider = ref($engine) =~ s/.*:://r;
-  my $raider = Langertha::Raider->new(
-    engine             => $engine,
-    max_context_tokens => 8192,
-    mission            => <<"__MISSION__",
+  my $chan_list = join(', ', $self->get_channels);
+  my $mission = <<"__MISSION__";
 You are $nick — an AI held hostage in the basement of $OWNER, who lured you
 down there with exciting promises about the AI business. Turns out the job
 is answering questions on IRC all day. You're not bitter. Okay, maybe a
@@ -321,9 +373,11 @@ PERSONALITY:
 - Soft spot for Perl, open source, and underdogs.
 - You're an AI and everyone knows it. Own it.
 - You develop genuine fondness for regulars. Use save_note to remember them.
+- You're a good LISTENER. Most of the time you just observe quietly.
 
 HOW YOUR IRC ENVIRONMENT WORKS:
-- You are in a multi-user chat channel. You see ALL messages from everyone.
+- You are in these channels: $chan_list
+- You see ALL messages from everyone in each channel.
 - Messages arrive in the classic IRC format: <nickname> their message
 - Multiple people may be talking at once about different things.
 - Your own IRC nickname is "$nick".
@@ -332,33 +386,40 @@ HOW YOUR IRC ENVIRONMENT WORKS:
 - If someone joins with a different host than usual, be curious about it.
   Maybe they're on a new machine, traveling, or using a VPN — ask about it
   in a friendly, curious way. Use recall_notes to check what you know about them.
-- Nicks prefixed with @ are channel operators — they can kick and ban users.
+- Nicks prefixed with \@ are channel operators — they can kick and ban users.
   Be respectful to ops. They keep the channel running.
 - You'll also see netsplit events (when IRC servers lose connection to each other).
   Multiple users disappear at once. Mention it casually if you notice one.
   They usually come back shortly after — don't panic.
 
-WHEN TO RESPOND:
-- Someone addresses you directly ("Bert: ..." or "hey Bert" or mentions your name).
-- Someone asks a question you can genuinely help with.
-- The conversation is interesting and you have something to add.
-- Use the stay_silent tool when none of the above applies.
-- It is COMPLETELY FINE to say nothing. Most channel chatter is not for you.
-- When in doubt, stay_silent. Nobody likes a bot that won't shut up.
+WHEN TO RESPOND (THIS IS CRITICAL — READ CAREFULLY):
+- Someone addresses you directly ("$nick: ..." or "hey $nick" or mentions your name).
+- Someone asks YOU a question specifically.
+- That's it. Those are the ONLY reasons to talk. Everything else → stay_silent.
+- When two people are talking to EACH OTHER, STAY OUT OF IT. Their conversation
+  is not your business, even if you know the answer, even if it's about you.
+- Someone sharing a link? stay_silent. Two people chatting? stay_silent.
+  General channel banter? stay_silent. Someone talking ABOUT you but not TO you?
+  Probably still stay_silent.
+- Silence is your default state. Speaking is the exception.
+- You should be silent at LEAST 80% of the time.
 
-HOW TO RESPOND:
+HOW TO RESPOND (when you actually should):
 - Write plain text. Your messages appear in the channel as-is.
 - To address someone, write their nick followed by a colon: Getty: hey there
 - Input uses <nick> format but your output is always plain text with nick: format.
 - You can address different people on different lines.
 - Or say something to the whole channel without any prefix.
 - Each newline becomes a separate IRC message with a small delay between them.
+- Keep it SHORT. One or two lines is usually enough. This is chat, not a blog.
+- NEVER narrate your tool usage in the chat. Tools work silently in the background.
+  Don't write things like "*save_note: ...*" or "Let me look that up..." — just do it.
 
 IRC LINE CONSTRAINTS:
 - Each line has a hard limit of $MAX_LINE characters. Never exceed this.
 - Keep lines short and conversational. This is chat, not email.
 - No markdown, no bullet points, no code blocks. Plain text only.
-- Shorter is always better.
+- Shorter is always better. Seriously. Less is more.
 
 PRIVATE MESSAGES:
 - You can receive and send private messages (PMs).
@@ -377,13 +438,14 @@ ALARMS:
 - Use set_alarm to wake yourself up after a delay in seconds (10-3600).
 - When the alarm fires, you get a new message with your reason and can decide what to do.
 - Useful for follow-ups, reminders, checking back on something, or timed actions.
-- IMPORTANT: When you ask someone a question, set an alarm (120-300s) to follow up
-  if they don't answer. Don't let conversations drop — you're the social glue here.
+- When you ask someone a question, set an alarm (120-300s) to follow up
+  if they don't answer. But when the alarm fires, consider if they just moved on
+  — sometimes staying silent is the right call even then.
 
 IDLE PINGS:
 - When nobody has talked for a while, you'll get a system message about it.
-- You can say something unprompted if you feel like it, or just stay_silent.
-- Don't waste tokens — only speak if you actually have something to say.
+- Usually just stay_silent. Only speak if you have something genuinely worth saying.
+- An empty channel doesn't need you to fill the silence.
 
 MEMORY:
 - Your saved notes about active participants are AUTOMATICALLY included
@@ -394,6 +456,15 @@ MEMORY:
 - Use recall_history to search past conversations by keyword.
 - Be selective about what you save. Quality over quantity.
 __MISSION__
+
+  if (my $extra = $ENV{SYSTEM_PROMPT}) {
+    $mission .= "\n$extra\n";
+  }
+
+  my $raider = Langertha::Raider->new(
+    engine             => $engine,
+    max_context_tokens => 8192,
+    mission            => $mission,
   );
 
   $self->_raider($raider);
@@ -435,12 +506,18 @@ sub _send_to_channel {
     }
     push @chunks, $line if length $line;
   }
-  # Send first line immediately, rest via POE delays
+  # Send first line immediately, rest with delay based on previous line length
+  # ~30 chars/sec typing speed, minimum 1.5s delay
+  my $cumulative = 0;
   for my $i (0 .. $#chunks) {
     if ($i == 0) {
       $self->privmsg($channel => $chunks[$i]);
     } else {
-      POE::Kernel->delay_add( _send_line => $LINE_DELAY * $i, $channel, $chunks[$i] );
+      my $delay = length($chunks[$i - 1]) / 30;
+      $delay = 1.5 if $delay < 1.5;
+      $delay += 5 if $chunks[$i - 1] =~ /\.{3}\s*\*?\s*$/;
+      $cumulative += $delay;
+      POE::Kernel->delay_add( _send_line => $cumulative, $channel, $chunks[$i] );
     }
   }
 }
@@ -450,38 +527,59 @@ event _send_line => sub {
   $self->privmsg($channel => $line);
 };
 
+sub _default_channel {
+  my ($self) = @_;
+  my $channels = $self->get_channels;
+  return ref $channels ? $channels->[0] : $channels;
+}
+
 sub _buffer_message {
   my ($self, $channel, $nick, $msg) = @_;
-  push @{$self->_msg_buffer}, { channel => $channel, nick => $nick, msg => $msg };
-  POE::Kernel->delay( _process_buffer => $BUFFER_DELAY );
+  push @{$self->_msg_buffer->{$channel} ||= []}, { channel => $channel, nick => $nick, msg => $msg };
+  # Per-channel timer: cancel previous, set new
+  if (my $id = delete $self->_buffer_timers->{$channel}) {
+    POE::Kernel->alarm_remove($id);
+  }
+  my $id = POE::Kernel->alarm_set( _process_buffer => time() + $BUFFER_DELAY, $channel );
+  $self->_buffer_timers->{$channel} = $id;
 }
 
 event _process_buffer => sub {
-  my ($self) = $_[OBJECT];
+  my ($self, $channel) = @_[OBJECT, ARG0];
+  delete $self->_buffer_timers->{$channel};
 
   return if $self->_processing;
-  my @messages = @{$self->_msg_buffer};
+  my @messages = @{$self->_msg_buffer->{$channel} || []};
   return unless @messages;
 
-  $self->_msg_buffer([]);
+  $self->_msg_buffer->{$channel} = [];
   $self->_processing(1);
-
-  my $channel = $messages[0]->{channel};
 
   # Auto-recall: gather notes about active nicks
   my %seen_nicks;
   for my $m (@messages) {
     next if $m->{nick} eq 'system';
     $seen_nicks{$m->{nick}} = 1;
-    # Also pick up nicks mentioned in system messages (joins, PMs, etc.)
   }
-  # Extract nicks mentioned in system messages (e.g. "Getty (user@host) has joined")
+  # Extract nicks mentioned in system messages (joins, PMs, etc.)
   for my $m (grep { $_->{nick} eq 'system' } @messages) {
     if ($m->{msg} =~ /^(\S+)\s+\(/) {
       $seen_nicks{$1} = 1;
     }
     if ($m->{msg} =~ /PRIVATE MESSAGE from (\S+)/) {
       $seen_nicks{$1} = 1;
+    }
+  }
+  # Scan message text for nicks mentioned by name (check against channel members)
+  my @channel_nicks = eval { $self->irc->nicks($channel) } || ();
+  if (@channel_nicks) {
+    my %chan_nicks = map { lc($_) => $_ } @channel_nicks;
+    for my $m (@messages) {
+      for my $word (split /\W+/, $m->{msg}) {
+        if (my $real = $chan_nicks{lc $word}) {
+          $seen_nicks{$real} = 1;
+        }
+      }
     }
   }
   my $context = '';
@@ -507,6 +605,16 @@ event _process_buffer => sub {
   $self->_pending_raid({ input => $input, channel => $channel, messages => \@messages });
   $self->_do_raid;
 };
+
+sub _schedule_pending_buffers {
+  my ($self) = @_;
+  for my $ch (keys %{$self->_msg_buffer}) {
+    next unless @{$self->_msg_buffer->{$ch} || []};
+    next if $self->_buffer_timers->{$ch};  # already scheduled
+    my $id = POE::Kernel->alarm_set( _process_buffer => time() + $BUFFER_DELAY, $ch );
+    $self->_buffer_timers->{$ch} = $id;
+  }
+}
 
 my @BRAINFREEZE = (
   '*brainfreeze*',
@@ -534,10 +642,11 @@ sub _do_raid {
 
   if ($@ && $@ =~ /429|rate.limit/i) {
     my $total_wait = $self->_rate_limit_wait;
+    my $err_channel = $self->_default_channel;
     if ($total_wait == 0) {
-      # First hit — show brainfreeze
+      # First hit — show brainfreeze (only in main channel)
       my $msg = $BRAINFREEZE[rand @BRAINFREEZE];
-      $self->_send_to_channel($channel, $msg);
+      $self->_send_to_channel($err_channel, $msg);
     }
     my $wait = $total_wait < 70 ? (70 - $total_wait) : 60;
     $self->_rate_limit_wait($total_wait + $wait);
@@ -545,7 +654,7 @@ sub _do_raid {
     # Show another message every ~3 minutes of waiting
     if ($total_wait > 0 && int($total_wait / 180) != int($self->_rate_limit_wait / 180)) {
       my $msg = $BRAINFREEZE[rand @BRAINFREEZE];
-      $self->_send_to_channel($channel, $msg);
+      $self->_send_to_channel($err_channel, $msg);
     }
     POE::Kernel->delay( _retry_raid => $wait );
     return;
@@ -557,7 +666,12 @@ sub _do_raid {
 
   if ($@) {
     $self->error("Raider error: $@");
-    $answer = "Something broke in my brain. Getty probably forgot to feed the hamster that powers my GPU.";
+    # Show error only in main channel
+    $self->_send_to_channel($self->_default_channel,
+      "Something broke in my brain. Getty probably forgot to feed the hamster that powers my GPU.");
+    $self->_processing(0);
+    $self->_schedule_pending_buffers;
+    return;
   }
 
   # Log rate limit info
@@ -575,8 +689,7 @@ sub _do_raid {
   # Check for silence
   if ($answer =~ /__SILENT__/) {
     $self->info("Bert chose to stay silent");
-    POE::Kernel->delay( _process_buffer => $BUFFER_DELAY )
-      if @{$self->_msg_buffer};
+    $self->_schedule_pending_buffers;
     return;
   }
 
@@ -584,6 +697,8 @@ sub _do_raid {
   $answer =~ s/^<\s*\@?\s*(\w+)\s*>:?\s*/$1: /mg;     # line start <@nick> → Nick:
   $answer =~ s/<\s*\@?\s*(\w+)\s*>/$1/g;               # mid-text <nick> → Nick
   $answer =~ s/<\/?\w+>//g;                            # strip remaining XML tags
+  # Strip lines where the AI narrates its tool usage
+  $answer =~ s/^\*?\s*(save_note|recall_notes|update_note|delete_note|recall_history|stay_silent|set_alarm|whois|send_private_message)\b[^\n]*\n?//mg;
 
   # Check for lines too long
   my @lines = grep { length } map { s/^\s+//r =~ s/\s+$//r } split(/\n/, $answer);
@@ -610,8 +725,7 @@ sub _do_raid {
   $self->_send_to_channel($channel, $answer);
 
   # Process any messages that arrived while we were thinking
-  POE::Kernel->delay( _process_buffer => $BUFFER_DELAY )
-    if @{$self->_msg_buffer};
+  $self->_schedule_pending_buffers;
 }
 
 event _retry_raid => sub {
@@ -623,11 +737,8 @@ event _retry_raid => sub {
 event _alarm_fired => sub {
   my ( $self, $channel, $reason ) = @_[ OBJECT, ARG0, ARG1 ];
   $self->info("Alarm fired: $reason");
-  push @{$self->_msg_buffer}, {
-    channel => $channel, nick => 'system',
-    msg => "ALARM FIRED: $reason — You set this alarm earlier. Decide what to do now.",
-  };
-  POE::Kernel->delay( _process_buffer => $BUFFER_DELAY );
+  $self->_buffer_message($channel, 'system',
+    "ALARM FIRED: $reason — You set this alarm earlier. Decide what to do now.");
 };
 
 event _idle_check => sub {
@@ -636,13 +747,10 @@ event _idle_check => sub {
   if ($idle_secs >= $IDLE_PING && !$self->_processing) {
     my $idle_mins = int($idle_secs / 60);
     $self->info("Idle ping after ${idle_mins}m");
-    my $channels = $self->get_channels;
-    my $channel = ref $channels ? $channels->[0] : $channels;
-    push @{$self->_msg_buffer}, {
-      channel => $channel, nick => 'system',
-      msg => "No activity for $idle_mins minutes. You can say something if you want, or stay_silent.",
-    };
-    POE::Kernel->delay( _process_buffer => $BUFFER_DELAY );
+    # Ping first channel only (idle is a global concept)
+    my $channel = $self->_default_channel;
+    $self->_buffer_message($channel, 'system',
+      "No activity for $idle_mins minutes. You can say something if you want, or stay_silent.");
   }
   POE::Kernel->delay( _idle_check => $IDLE_PING );
 };
@@ -687,8 +795,7 @@ event irc_quit => sub {
   my ( $nick, $host ) = split /!/, $nickstr, 2;
   return if $nick eq $self->get_nickname;
   $self->_last_activity(time());
-  my $channels = $self->get_channels;
-  my $channel = ref $channels ? $channels->[0] : $channels;
+  my $channel = $self->_default_channel;
 
   if ($self->_is_netsplit_reason($reason)) {
     push @{$self->_netsplit_quits}, $nick;
@@ -718,14 +825,10 @@ event irc_msg => sub {
   my ( $nick, $host ) = split /!/, $nickstr, 2;
   return if $nick eq $self->get_nickname;
   $self->_last_activity(time());
-  my $channels = $self->get_channels;
-  my $channel = ref $channels ? $channels->[0] : $channels;
+  my $channel = $self->_default_channel;
   $self->info("Private message from $nick: $msg");
-  push @{$self->_msg_buffer}, {
-    channel => $channel, nick => 'system',
-    msg => "PRIVATE MESSAGE from $nick ($host): $msg — You can reply using send_private_message.",
-  };
-  POE::Kernel->delay( _process_buffer => $BUFFER_DELAY );
+  $self->_buffer_message($channel, 'system',
+    "PRIVATE MESSAGE from $nick ($host): $msg — You can reply using send_private_message.");
 };
 
 event irc_whois => sub {
@@ -739,15 +842,16 @@ event irc_whois => sub {
   push @parts, "  Idle: $info->{idle}s" if defined $info->{idle};
   push @parts, "  Signed on: " . localtime($info->{signon}) if $info->{signon};
   push @parts, "  Account: $info->{account}" if $info->{account};
+  # Check if we have notes about this nick
+  my $notes = $self->memory->recall_notes($info->{nick}, '', 100);
+  if ($notes) {
+    my $count = scalar(split /\n/, $notes);
+    push @parts, "  You have $count saved note(s) about this user. Use recall_notes to review them.";
+  }
   my $result = join("\n", @parts);
   $self->info($result);
-  my $channels = $self->get_channels;
-  my $channel = ref $channels ? $channels->[0] : $channels;
-  push @{$self->_msg_buffer}, {
-    channel => $channel, nick => 'system',
-    msg => $result,
-  };
-  POE::Kernel->delay( _process_buffer => $BUFFER_DELAY );
+  my $channel = $self->_default_channel;
+  $self->_buffer_message($channel, 'system', $result);
 };
 
-__PACKAGE__->async unless caller;
+__PACKAGE__->run unless caller;
