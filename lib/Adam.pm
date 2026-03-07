@@ -1,6 +1,6 @@
 package Adam;
 # ABSTRACT: The patriarch of IRC Bots
-# Dist::Zilla: +PodWeaver
+
 use MooseX::POE;
 use namespace::autoclean;
 
@@ -23,6 +23,17 @@ with qw(
   MooseX::Getopt
 );
 
+=head1 SYNOPSIS
+
+See the Synopsis in L<Moses>. Adam is not meant to be used directly.
+
+=head1 DESCRIPTION
+
+The Adam class implements a basic L<POE::Component::IRC> bot based on
+L<Moose> and L<MooseX::POE>.
+
+=cut
+
 has logger => (
     does       => 'Adam::Logger::API',
     is         => 'ro',
@@ -30,6 +41,13 @@ has logger => (
     lazy_build => 1,
     handles    => 'Adam::Logger::API',
 );
+
+=attr logger
+
+Logger object that implements the L<Adam::Logger::API> role. Defaults to
+L<Adam::Logger::Default>.
+
+=cut
 
 sub _build_logger { Adam::Logger::Default->new() }
 
@@ -43,6 +61,12 @@ has nickname => (
     builder  => 'default_nickname',
 );
 
+=attr nickname
+
+The IRC nickname for the bot. Defaults to the package name. Required.
+
+=cut
+
 sub default_nickname { $_[0]->meta->name }
 
 has server => (
@@ -53,6 +77,12 @@ has server => (
     required => 1,
     builder  => 'default_server',
 );
+
+=attr server
+
+The IRC server to connect to. Defaults to C<irc.perl.org>. Required.
+
+=cut
 
 sub default_server { 'irc.perl.org' }
 
@@ -65,6 +95,12 @@ has port => (
     builder  => 'default_port',
 );
 
+=attr port
+
+The port for the IRC server. Defaults to C<6667>.
+
+=cut
+
 sub default_port { 6667 }
 
 has channels => (
@@ -76,6 +112,12 @@ has channels => (
     auto_deref => 1,
 );
 
+=attr channels
+
+IRC channels to connect to. ArrayRef of channel names.
+
+=cut
+
 sub default_channels { [] }
 
 has owner => (
@@ -85,6 +127,13 @@ has owner => (
     cmd_flag => 'owner',
     builder  => 'default_owner',
 );
+
+=attr owner
+
+The hostmask of the owner of the bot. The owner can control the bot's plugins
+through IRC using the L<POE::Component::IRC::Plugin::PlugMan> interface.
+
+=cut
 
 sub default_owner { 'perigrin!~perigrin@217.168.150.167' }
 
@@ -96,6 +145,12 @@ has username => (
     builder  => 'default_username',
 );
 
+=attr username
+
+The username to use for IRC connection. Defaults to C<adam>.
+
+=cut
+
 sub default_username { 'adam' }
 
 has password => (
@@ -106,6 +161,12 @@ has password => (
     builder  => 'default_password',
 );
 
+=attr password
+
+The server password to use for IRC connection. Defaults to empty string.
+
+=cut
+
 sub default_password { '' }
 
 has flood => (
@@ -115,6 +176,12 @@ has flood => (
     cmd_flag => 'flood',
     builder  => 'default_flood',
 );
+
+=attr flood
+
+Disable flood protection. Defaults to C<0> (false).
+
+=cut
 
 sub default_flood { 0 }
 
@@ -131,6 +198,13 @@ has plugins => (
     }
 );
 
+=attr plugins
+
+A HashRef of plugins associated with the IRC bot. See L<Moses::Plugin> for more
+details.
+
+=cut
+
 sub core_plugins {
     return {
         'Core_Connector'    => 'POE::Component::IRC::Plugin::Connector',
@@ -143,17 +217,41 @@ sub core_plugins {
     };
 }
 
+=method core_plugins
+
+Returns the core plugins that are loaded by default.
+
+=cut
+
 sub custom_plugins { {} }
+
+=method custom_plugins
+
+Returns custom plugins to be loaded. Override this in subclasses.
+
+=cut
 
 sub default_plugins {
     return { %{ $_[0]->core_plugins }, %{ $_[0]->custom_plugins } };
 }
+
+=method default_plugins
+
+Returns all plugins (core and custom) to be loaded.
+
+=cut
 
 has plugin_manager => (
     isa        => 'POE::Component::IRC::Plugin::PlugMan',
     is         => 'ro',
     lazy_build => 1,
 );
+
+=attr plugin_manager
+
+The L<POE::Component::IRC::Plugin::PlugMan> instance for managing plugins.
+
+=cut
 
 sub _build_plugin_manager {
     POE::Component::IRC::Plugin::PlugMan->new(
@@ -175,6 +273,12 @@ has poco_irc_args => (
     builder  => 'default_poco_irc_args',
 );
 
+=attr poco_irc_args
+
+A HashRef of extra arguments to pass to the IRC component constructor.
+
+=cut
+
 sub default_poco_irc_args {
     {};
 }
@@ -186,6 +290,12 @@ has poco_irc_options => (
     cmd_flag => 'extra_args',
     builder  => 'default_poco_irc_options',
 );
+
+=attr poco_irc_options
+
+A HashRef of options to pass to the IRC component. Defaults to C<< { trace => 0 } >>.
+
+=cut
 
 sub default_poco_irc_options { { trace => 0 } }
 
@@ -220,6 +330,14 @@ sub privmsg {
     POE::Kernel->post( $self->irc_session_id => privmsg => @_ );
 }
 
+=method privmsg
+
+    $bot->privmsg($who, $what);
+
+Send message C<$what> as a private message to C<$who>, a channel or nick.
+
+=cut
+
 sub START {
     my ( $self, $heap ) = @_[ OBJECT, HEAP ];
     $poe_kernel->post( $self->irc_session_id => register => 'all' );
@@ -232,6 +350,14 @@ sub load_plugin {
     my ( $self, $name, $plugin ) = @_;
     $self->plugin_manager->load( $name => $plugin, bot => $self );
 }
+
+=method load_plugin
+
+    $bot->load_plugin($name, $plugin);
+
+Load a plugin with the given name.
+
+=cut
 
 event irc_plugin_add => sub {
     my ( $self, $desc, $plugin ) = @_[ OBJECT, ARG0, ARG1 ];
@@ -274,85 +400,68 @@ sub run {
     POE::Kernel->run;
 }
 
-1;    # Magic true value required at end of module
+=method run
 
-__END__
+    MyBot->run;
+    # or
+    $bot->run;
 
-=head1 SYNOPSIS
-
-See the Synopsis in L<Moses|Moses>. Adam is not meant to be used directly.
-
-=head1 DESCRIPTION
-
-The Adam class implements a basic L<POE::Component::IRC|POE::Component::IRC>
-bot based on L<Moose|Moose> and L<MooseX::POE|MooseX::POE>.
-
-=head1 ATTRIBUTES
-
-=head2 nickname (Str)
-
-The IRC nickname for the bot, it will default to the package name.
-
-=head2 server (Str)
-
-The IRC server to connect to.
-
-=head2 port (Int)
-
-The port for the IRC server, defaults to 6667
-
-=head2 username(Str)
-
-The username which we should use
-
-=head2 password(Str)
-
-The server password which we shoulduse
-
-=head2 channels (ArrayRef[Str])
-
-IRC channels to connect to.
-
-=head2 owner (Str)
-
-The hostmask of the ower of the bot. The owner can control the bot's plugins
-through IRC using the <POE::Component::IRC::Plugin::Plugman|Plugman>
-interface.
-
-=head2 flood (Bool)
-
-Disable flood protection. Defaults to False.
-
-=head2 plugins (HashRef)
-
-A list of plugins associated with the IRC bot. See L<Moses::Plugin> for more
-details.
-
-=head2 extra_args (HashRef)
-
-A list of extra arguments to pass to the irc constructor.
-
-=head1 METHODS
-
-=head2 privmsg (Str $who, Str $what)
-
-Send message C<$what> as a private message to C<$who>, a channel or nick.
-
-=head2 run ()
-
-Start the IRC bot. This method also works as a Class Method and will
-instanciate the bot if called as such.
-
-=head1 DEPENDENCIES
-
-L<MooseX::POE|MooseX::POE>, L<namespace::autoclean|namespace::autoclean>,
-L<MooseX::Alias|MooseX::Alias>, L<POE::Component::IRC|POE::Component::IRC>,
-L<MooseX::Getopt|MooseX::Getopt>,
-L<MooseX::SimpleConfig|MooseX::SimpleConfig>,
-L<MooseX::LogDispatch|MooseX::LogDispatch>
-
-=head1 BUGS AND LIMITATIONS
-
-None known currently, please report bugs to L<https://rt.cpan.org/Ticket/Create.html?Queue=Adam>
+Start the IRC bot using the POE event loop. This method also works as a
+class method and will instantiate the bot if called as such.
 
 =cut
+
+has _loop => (
+    is        => 'rw',
+    traits    => ['NoGetopt'],
+    predicate => 'has_loop',
+);
+
+=attr _loop
+
+The L<IO::Async::Loop> instance when running in async mode. Used internally.
+
+=cut
+
+sub async {
+    my $self = shift;
+    require IO::Async::Loop::POE;
+    $self = $self->new_with_options unless blessed $self;
+    my $loop = IO::Async::Loop::POE->new();
+    $self->_loop($loop);
+    $loop->run;
+}
+
+=method async
+
+    MyBot->async;
+    # or
+    $bot->async;
+
+Start the IRC bot using IO::Async as the event loop. This allows you to
+integrate the bot with other IO::Async-based components. Requires
+L<IO::Async::Loop::POE> to be installed.
+
+This method also works as a class method and will instantiate the bot
+if called as such.
+
+=cut
+
+sub stop {
+    my $self = shift;
+    if ($self->has_loop) {
+        $self->_loop->stop;
+    } else {
+        POE::Kernel->stop;
+    }
+}
+
+=method stop
+
+    $bot->stop;
+
+Stop the bot's event loop. Works with both POE and IO::Async modes.
+
+=cut
+
+1;

@@ -1,8 +1,14 @@
 package Adam::Plugin;
 # ABSTRACT: A base class for Adam/Moses plugins
-# Dist::Zilla: +PodWeaver
+
 use Moose;
 use namespace::autoclean;
+
+=head1 DESCRIPTION
+
+The Adam::Plugin class implements a base class for Adam/Moses IRC bot plugins.
+
+=cut
 
 has bot => (
     isa      => 'Adam',
@@ -20,6 +26,13 @@ has bot => (
     ],
 );
 
+=attr bot
+
+The L<Adam> bot instance. Required. Handles several methods from the bot
+including C<log>, C<owner>, C<irc>, C<yield>, C<privmsg>, and C<nick>.
+
+=cut
+
 has _events => (
     isa     => 'ArrayRef',
     is      => 'ro',
@@ -32,6 +45,14 @@ sub default_events {
     [ grep { /^[SU]_\w+/ } shift->meta->get_all_method_names ];
 }
 
+=method default_events
+
+The default events that this plugin will listen to. Returns an ArrayRef of all
+methods prefixed with C<S_> (server events) or C<U_> (user events) in the current
+class.
+
+=cut
+
 sub PCI_register {
     my ( $self, $irc ) = splice @_, 0, 2;
     my @events = $self->_list_events;
@@ -42,10 +63,23 @@ sub PCI_register {
     return 1;
 }
 
+=method PCI_register
+
+Called when the plugin is registered with the IRC component. Automatically
+registers server and user events based on method names.
+
+=cut
+
 sub PCI_unregister {
     my ( $self, $irc ) = @_;
     return 1;
 }
+
+=method PCI_unregister
+
+Called when the plugin is unregistered from the IRC component.
+
+=cut
 
 sub _default {
     my ( $self, $irc, $event ) = @_;
@@ -53,26 +87,3 @@ sub _default {
 }
 
 1;
-
-__END__
-
-=head1 DESCRIPTION
-
-The Adam::Plugin class implements a base class for Adam/Moses IRC bot plugins.
-
-=head1 ATTRIBUTES
-
-=head2 bot
-
-=head1 METHODS
-
-=head2 default_events
-
-The default events that this plugin will listen to. It defaults to all methods
-prefixed with 'S_' or 'U_' in the current class.
-
-=head1 BUGS AND LIMITATIONS
-
-None known currently, please report bugs to L<https://rt.cpan.org/Ticket/Create.html?Queue=Adam>
-
-=cut

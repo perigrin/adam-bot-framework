@@ -1,5 +1,7 @@
+# PODNAME: Moses::Declare
+# ABSTRACT: MooseX::Declare syntax for Moses bots
+
 use MooseX::Declare;
-# Dist::Zilla: -PodWeaver
 
 class Moses::Declare extends MooseX::Declare {
     use aliased 'Moses::Declare::Syntax::BotKeyword';

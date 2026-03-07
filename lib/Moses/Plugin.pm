@@ -1,6 +1,6 @@
 package Moses::Plugin;
 # ABSTRACT: Sugar for Moses Plugins
-# Dist::Zilla: +PodWeaver
+
 use Moose       ();
 use MooseX::POE ();
 use Moose::Exporter;
@@ -11,15 +11,22 @@ Moose::Exporter->setup_import_methods(
     also        => [qw(Moose)],
 );
 
+=head1 DESCRIPTION
+
+The Moses::Plugin module provides a declarative sugar layer for
+L<POE::Component::IRC> plugins based on the L<Adam::Plugin> class.
+
+=cut
+
 sub init_meta {
     my ( $class, %args ) = @_;
 
     my $for = $args{for_class};
     eval qq{
-        package $for; 
+        package $for;
         use POE;
         use POE::Component::IRC::Common qw( :ALL );
-        use POE::Component::IRC::Plugin qw( :ALL );        
+        use POE::Component::IRC::Plugin qw( :ALL );
     };
 
     Moose->init_meta(
@@ -34,24 +41,13 @@ sub events {
     $class->add_method( 'default_events' => sub { return \@events } );
 }
 
-1;
+=func events
 
-__END__
+    events qw( S_public S_privmsg );
 
-=head1 DESCRIPTION
-
-The Moses::Plugin builds a declarative sugar layer for
-L<POE::Component::IRC|POE::Component::IRC> plugins based on the
-L<Adam::Plugin|Adam::Plugin> class.
-
-=head1 FUNCTIONS
-
-=head2 events (@events)
-
-Insert description of subroutine here...
-
-=head1 BUGS AND LIMITATIONS
-
-None known currently, please report bugs to L<https://rt.cpan.org/Ticket/Create.html?Queue=Adam>
+Declare which IRC events this plugin should listen to. Event names should be
+prefixed with C<S_> for server events or C<U_> for user events.
 
 =cut
+
+1;

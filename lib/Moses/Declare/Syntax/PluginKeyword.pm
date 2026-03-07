@@ -1,5 +1,7 @@
+# PODNAME: Moses::Declare::Syntax::PluginKeyword
+# ABSTRACT: Plugin keyword for Moses::Declare
+
 use MooseX::Declare;
-# Dist::Zilla: -PodWeaver
 
 class Moses::Declare::Syntax::PluginKeyword extends
   MooseX::Declare::Syntax::Keyword::Class {

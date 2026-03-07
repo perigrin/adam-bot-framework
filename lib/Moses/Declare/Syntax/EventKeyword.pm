@@ -1,5 +1,7 @@
+# PODNAME: Moses::Declare::Syntax::EventKeyword
+# ABSTRACT: Event keyword for Moses::Declare
+
 use MooseX::Declare;
-# Dist::Zilla: -PodWeaver
 
 class Moses::Declare::Syntax::EventKeyword extends
   MooseX::Declare::Syntax::Keyword::Method {
