@@ -11,22 +11,16 @@ Log messages include timestamps in C<[YYYY-MM-DD HH:MM:SS]> format.
 
 =cut
 
-has '+log_dispatch_conf' => (
-  default => sub {{
-    class     => 'Log::Dispatch::Screen',
-    min_level => 'debug',
-    stderr    => 1,
-    callbacks => sub {
-      my %p = @_;
-      my $ts = strftime('%Y-%m-%d %H:%M:%S', localtime);
-      return "[$ts] [$p{level}] $p{message}\n";
-    },
-  }},
-);
-
 with qw(
   Adam::Logger::API
   MooseX::LogDispatch::Levels
 );
+
+around log => sub {
+  my ($orig, $self, %args) = @_;
+  my $ts = strftime('%Y-%m-%d %H:%M:%S', localtime);
+  $args{message} = "[$ts] [$args{level}] $args{message}";
+  $self->$orig(%args);
+};
 
 1;
