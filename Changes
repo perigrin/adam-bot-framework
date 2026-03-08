@@ -1,6 +1,6 @@
-Revision history for {{$dist->name}}
+Revision history for Adam
 
-{{$NEXT}}
+1.002     2026-03-08 05:06:55Z
 
 1.001     2026-03-07 19:44:57Z
 	+ Updated POD: Adam and Moses now document IO::Async support and dual event loop modes
