@@ -1,4 +1,6 @@
-Revision history for Adam
+Revision history for {{$dist->name}}
+
+{{$NEXT}}
 
 1.002     2026-03-08 05:06:55Z
 

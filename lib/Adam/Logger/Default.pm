@@ -1,6 +1,6 @@
 package Adam::Logger::Default;
 # ABSTRACT: Default logger for Adam bots
-our $VERSION = '1.002';
+our $VERSION = '1.003';
 use Moose;
 use POSIX qw( strftime );
 
