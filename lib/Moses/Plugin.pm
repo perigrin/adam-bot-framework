@@ -1,6 +1,6 @@
 package Moses::Plugin;
 # ABSTRACT: Sugar for Moses Plugins
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 use Moose       ();
 use MooseX::POE ();
 use Moose::Exporter;

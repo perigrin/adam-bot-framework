@@ -1,6 +1,6 @@
 package Adam::Logger::API;
 # ABSTRACT: API Role for the Adam logger
-our $VERSION = '1.003';
+our $VERSION = '1.004';
 use Moose::Role;
 use namespace::autoclean;
 
