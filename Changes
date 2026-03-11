@@ -1,6 +1,6 @@
-Revision history for {{$dist->name}}
+Revision history for Adam
 
-{{$NEXT}}
+1.003     2026-03-11 02:08:02Z
         + Administrative update to cleanup the provides for CPAN
 
 1.002     2026-03-08 05:06:55Z
